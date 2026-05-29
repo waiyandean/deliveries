@@ -131,6 +131,19 @@
 
   .err-msg { background: var(--danger-bg); color: var(--danger-text); border: 1px solid #f5b8b3; border-radius: var(--radius-sm); padding: 10px 13px; font-size: 13px; margin-bottom: 12px; display: none; }
 
+  /* Checks */
+  .checks-row { display: flex; gap: 10px; margin-top: 14px; }
+  .check-box { flex: 1; display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; cursor: pointer; transition: border-color 0.15s; }
+  .check-box.checked { background: var(--success-bg); border-color: #b2d9b2; }
+  .check-box input[type=checkbox] { width: 18px; height: 18px; accent-color: #2d6e2d; cursor: pointer; flex-shrink: 0; }
+  .check-box span { font-size: 13px; color: var(--text-muted); line-height: 1.3; }
+  .check-box.checked span { color: var(--success-text); }
+  .check-warn { font-size: 12px; color: var(--warn-text); background: var(--warn-bg); border: 1px solid #f0d88a; border-radius: var(--radius-sm); padding: 8px 12px; margin-top: 8px; display: none; }
+  .lr-checks { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .check-tag { font-size: 11px; font-family: 'Courier New', monospace; padding: 2px 8px; border-radius: 20px; border: 1px solid; }
+  .check-tag-ok { background: var(--success-bg); color: var(--success-text); border-color: #b2d9b2; }
+  .check-tag-fail { background: var(--danger-bg); color: var(--danger-text); border-color: #f5b8b3; }
+
   /* Ingredient manager */
   .ing-add-row { display: flex; gap: 8px; margin-bottom: 16px; }
   .ing-add-row input { flex: 1; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); outline: none; }
@@ -217,6 +230,17 @@
             </select>
           </div>
         </div>
+        <div class="checks-row">
+          <label class="check-box" id="cb-condition-wrap">
+            <input type="checkbox" id="l-condition" onchange="toggleCheck('cb-condition-wrap',this)" />
+            <span>Good condition</span>
+          </label>
+          <label class="check-box" id="cb-storage-wrap">
+            <input type="checkbox" id="l-storage" onchange="toggleCheck('cb-storage-wrap',this)" />
+            <span>Correct storage</span>
+          </label>
+        </div>
+        <div class="check-warn" id="check-warn">⚠ Please confirm both checks before adding this ingredient.</div>
       </div>
 
       <div class="err-msg" id="err2"></div>
@@ -415,6 +439,10 @@ document.addEventListener('click', e => {
 });
 
 /* ── Lines ── */
+function toggleCheck(wrapId, cb) {
+  document.getElementById(wrapId).classList.toggle('checked', cb.checked);
+  document.getElementById('check-warn').style.display = 'none';
+}
 function renderLines() {
   const c=document.getElementById('lines-list');
   c.innerHTML=lines.map((l,i)=>`
@@ -423,6 +451,10 @@ function renderLines() {
       <div class="line-body">
         <div class="line-name">${l.ingredient}</div>
         <div class="line-meta">Batch: ${l.batch} · UBD: ${fmt(l.ubd)} · ${l.qty}</div>
+        <div style="display:flex;gap:5px;margin-top:4px;">
+          <span class="check-tag ${l.condition?'check-tag-ok':'check-tag-fail'}">${l.condition?'✓ Good condition':'✗ Condition'}</span>
+          <span class="check-tag ${l.storage?'check-tag-ok':'check-tag-fail'}">${l.storage?'✓ Correct storage':'✗ Storage'}</span>
+        </div>
       </div>
       ${expiryBadge(l.ubd)}
       <button class="btn-remove" onclick="removeLine(${i})" aria-label="Remove">×</button>
@@ -438,6 +470,8 @@ function addLine() {
   const ubd=document.getElementById('l-ubd').value;
   const qtyNum=document.getElementById('l-qty').value.trim();
   const unit=document.getElementById('l-unit').value;
+  const condition=document.getElementById('l-condition').checked;
+  const storage=document.getElementById('l-storage').checked;
   const missing=[];
   if(!ingredient) missing.push('ingredient name');
   if(!batch) missing.push('batch number');
@@ -446,13 +480,22 @@ function addLine() {
   const err=document.getElementById('err2');
   if(missing.length){err.style.display='';err.textContent='Please fill in: '+missing.join(', ');return;}
   err.style.display='none';
+  if(!condition||!storage){
+    document.getElementById('check-warn').style.display='';
+    return;
+  }
+  document.getElementById('check-warn').style.display='none';
   const qty=`${qtyNum} ${unit}`;
-  lines.push({ingredient,batch,ubd,qty});
+  lines.push({ingredient,batch,ubd,qty,condition,storage});
   document.getElementById('l-ingredient').value='';
   document.getElementById('l-batch').value='';
   document.getElementById('l-ubd').value='';
   document.getElementById('l-qty').value='';
   document.getElementById('l-unit').value='Cases';
+  document.getElementById('l-condition').checked=false;
+  document.getElementById('l-storage').checked=false;
+  document.getElementById('cb-condition-wrap').classList.remove('checked');
+  document.getElementById('cb-storage-wrap').classList.remove('checked');
   closeDropdown();
   document.getElementById('l-ingredient').focus();
   renderLines();
@@ -473,7 +516,8 @@ async function saveDelivery() {
     try {
       const rows=delivery.lines.map(l=>({
         date:delivery.date, invoice:delivery.invoice, supplier:delivery.supplier, staff:delivery.staff,
-        ingredient:l.ingredient, batch:l.batch, ubd:l.ubd, qty:l.qty, savedAt:delivery.savedAt
+        ingredient:l.ingredient, batch:l.batch, ubd:l.ubd, qty:l.qty,
+        condition:l.condition?'Yes':'No', storage:l.storage?'Yes':'No', savedAt:delivery.savedAt
       }));
       const res=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({rows}),headers:{'Content-Type':'text/plain'}});
       const json=await res.json();
@@ -508,6 +552,10 @@ function renderRecords() {
         <div class="line-record">
           <div class="lr-top"><div class="lr-name">${l.ingredient}</div>${expiryBadge(l.ubd)}</div>
           <div class="lr-meta"><span>Batch: ${l.batch}</span><span>UBD: ${fmt(l.ubd)}</span><span>Qty: ${l.qty}</span></div>
+          <div class="lr-checks">
+            <span class="check-tag ${l.condition?'check-tag-ok':'check-tag-fail'}">${l.condition?'✓ Good condition':'✗ Condition issue'}</span>
+            <span class="check-tag ${l.storage?'check-tag-ok':'check-tag-fail'}">${l.storage?'✓ Correct storage':'✗ Storage issue'}</span>
+          </div>
         </div>`).join('')}
     </div>`).join('<hr style="border:none;border-top:1px solid var(--border);margin:0 0 20px;">');
 }
