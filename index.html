@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Delivery Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --border: #e0ddd6;
+    --border-strong: #c8c4bb;
+    --text: #1a1916;
+    --text-muted: #7a776e;
+    --text-hint: #b0ada5;
+    --accent: #1a1916;
+    --accent-fg: #ffffff;
+    --success-bg: #edf7ed;
+    --success-text: #2d6e2d;
+    --warn-bg: #fdf6e3;
+    --warn-text: #8a6500;
+    --danger-bg: #fdecea;
+    --danger-text: #c0392b;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Lexend', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; }
+
+  .app-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .app-title { font-size: 17px; font-weight: normal; letter-spacing: -0.01em; }
+  .app-title span { color: var(--text-muted); }
+  .header-badge { font-size: 12px; font-family: 'Courier New', monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; color: var(--text-muted); }
+
+  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tab { flex: 1; padding: 13px 6px; font-size: 13px; font-family: 'Lexend', sans-serif; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab.active { color: var(--text); border-bottom-color: var(--text); }
+
+  .content { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
+  .card-label { font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+  .card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .step-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .step-pill { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
+  .step-pill.active { color: var(--text); font-weight: bold; }
+  .step-pill.done { color: var(--success-text); }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border-strong); display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: 'Courier New', monospace; }
+  .step-pill.active .step-num { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .step-pill.done .step-num { background: var(--success-bg); border-color: var(--success-text); color: var(--success-text); font-size: 13px; }
+  .step-line { flex: 1; height: 1px; background: var(--border); }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12px; font-family: 'Courier New', monospace; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.03em; }
+  .field input { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); appearance: none; -webkit-appearance: none; outline: none; transition: border-color 0.15s; }
+  .field input:focus { border-color: var(--accent); }
+  .field input::placeholder { color: var(--text-hint); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Autocomplete */
+  .autocomplete-wrap { position: relative; }
+  .autocomplete-input { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); appearance: none; -webkit-appearance: none; outline: none; transition: border-color 0.15s; }
+  .autocomplete-input:focus { border-color: var(--accent); }
+  .autocomplete-input::placeholder { color: var(--text-hint); }
+  .autocomplete-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); box-shadow: 0 4px 16px rgba(0,0,0,0.08); z-index: 100; max-height: 220px; overflow-y: auto; display: none; }
+  .autocomplete-dropdown.open { display: block; }
+  .ac-item { padding: 11px 14px; font-size: 15px; font-family: 'Lexend', sans-serif; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:active, .ac-item.highlighted { background: var(--bg); }
+  .ac-item mark { background: none; color: var(--accent); font-weight: bold; }
+  .ac-empty { padding: 11px 14px; font-size: 13px; color: var(--text-muted); font-family: 'Courier New', monospace; }
+
+  .btn { width: 100%; padding: 13px; border-radius: var(--radius-sm); font-size: 15px; font-family: 'Lexend', sans-serif; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: var(--accent); color: var(--accent-fg); }
+  .btn-primary:active { opacity: 0.85; transform: scale(0.99); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-strong); margin-top: 10px; }
+  .btn-secondary:active { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .delivery-banner { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .banner-info { font-size: 13px; line-height: 1.8; }
+  .banner-info .row { display: flex; gap: 6px; }
+  .banner-key { font-family: 'Courier New', monospace; font-size: 11px; color: var(--text-muted); min-width: 54px; padding-top: 2px; }
+  .banner-val { font-weight: bold; font-size: 13px; }
+  .btn-edit { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 12px; font-family: 'Lexend', sans-serif; cursor: pointer; color: var(--text-muted); flex-shrink: 0; }
+
+  .lines-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .line-item { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; display: flex; align-items: center; gap: 10px; }
+  .line-n { font-family: 'Courier New', monospace; font-size: 11px; color: var(--text-hint); min-width: 18px; }
+  .line-body { flex: 1; min-width: 0; }
+  .line-name { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .line-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: 'Courier New', monospace; }
+  .badge { font-size: 10px; font-family: 'Courier New', monospace; padding: 2px 7px; border-radius: 20px; border: 1px solid; flex-shrink: 0; }
+  .badge-ok { background: var(--success-bg); color: var(--success-text); border-color: #b2d9b2; }
+  .badge-warn { background: var(--warn-bg); color: var(--warn-text); border-color: #f0d88a; }
+  .badge-exp { background: var(--danger-bg); color: var(--danger-text); border-color: #f5b8b3; }
+  .btn-remove { background: transparent; border: none; font-size: 18px; color: var(--text-hint); cursor: pointer; padding: 4px; line-height: 1; flex-shrink: 0; }
+
+  .save-row { display: flex; gap: 8px; flex-direction: column; }
+  .line-count { text-align: center; font-size: 12px; font-family: 'Courier New', monospace; color: var(--text-muted); margin-top: 6px; }
+
+  .delivery-group { margin-bottom: 20px; }
+  .group-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; flex-wrap: wrap; }
+  .group-meta { font-size: 13px; line-height: 1.6; }
+  .group-meta .inv { font-family: 'Courier New', monospace; font-size: 12px; color: var(--text-muted); }
+  .group-count { font-family: 'Courier New', monospace; font-size: 11px; color: var(--text-hint); }
+  .line-record { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; margin-bottom: 6px; }
+  .line-record:last-child { margin-bottom: 0; }
+  .lr-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .lr-name { font-size: 14px; font-weight: bold; }
+  .lr-meta { font-size: 12px; color: var(--text-muted); font-family: 'Courier New', monospace; display: flex; gap: 12px; flex-wrap: wrap; }
+  .search-box { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); outline: none; margin-bottom: 16px; }
+  .search-box:focus { border-color: var(--accent); }
+  .empty { text-align: center; padding: 48px 20px; color: var(--text-muted); font-size: 14px; }
+  .empty .icon { font-size: 32px; margin-bottom: 10px; }
+
+  .err-msg { background: var(--danger-bg); color: var(--danger-text); border: 1px solid #f5b8b3; border-radius: var(--radius-sm); padding: 10px 13px; font-size: 13px; margin-bottom: 12px; display: none; }
+
+  /* Ingredient manager */
+  .ing-add-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .ing-add-row input { flex: 1; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); outline: none; }
+  .ing-add-row input:focus { border-color: var(--accent); }
+  .btn-add-ing { padding: 11px 18px; background: var(--accent); color: var(--accent-fg); border: none; border-radius: var(--radius-sm); font-size: 14px; font-family: 'Lexend', sans-serif; cursor: pointer; white-space: nowrap; }
+  .ing-list { display: flex; flex-direction: column; gap: 6px; }
+  .ing-item { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; font-size: 14px; }
+  .ing-item span { flex: 1; }
+  .btn-del-ing { background: transparent; border: none; font-size: 18px; color: var(--text-hint); cursor: pointer; padding: 2px 6px; line-height: 1; }
+  .btn-del-ing:active { color: var(--danger-text); }
+  .ing-empty { text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 13px; font-family: 'Courier New', monospace; }
+  .ing-count { font-size: 12px; font-family: 'Courier New', monospace; color: var(--text-muted); margin-bottom: 12px; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-title">Delivery <span>Log</span></div>
+  <div class="header-badge" id="sync-status">● sheets</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('entry')" id="tab-entry">New Delivery</button>
+  <button class="tab" onclick="showTab('records')" id="tab-records">Records (<span id="rec-count">0</span>)</button>
+  <button class="tab" onclick="showTab('ingredients')" id="tab-ingredients">Ingredients</button>
+</div>
+
+<div class="content">
+
+  <!-- ── ENTRY PANEL ── -->
+  <div id="panel-entry">
+    <div class="step-row">
+      <div class="step-pill active" id="sp1"><div class="step-num" id="sn1">1</div> Delivery details</div>
+      <div class="step-line"></div>
+      <div class="step-pill" id="sp2"><div class="step-num" id="sn2">2</div> Add ingredients</div>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="step1">
+      <div class="card">
+        <div class="card-label">Delivery details</div>
+        <div class="field"><label>Delivery date</label><input type="date" id="h-date" /></div>
+        <div class="field"><label>Invoice number</label><input type="text" id="h-invoice" placeholder="e.g. 009111111" /></div>
+        <div class="field"><label>Supplier name</label><input type="text" id="h-supplier" placeholder="e.g. Lynas" /></div>
+        <div class="field"><label>Staff name</label><input type="text" id="h-staff" placeholder="Full name" /></div>
+      </div>
+      <div class="err-msg" id="err1"></div>
+      <button class="btn btn-primary" onclick="goStep2()">Continue →</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="step2" style="display:none;">
+      <div class="delivery-banner">
+        <div class="banner-info" id="banner-text"></div>
+        <button class="btn-edit" onclick="goStep1()">Edit</button>
+      </div>
+
+      <div class="lines-list" id="lines-list"></div>
+
+      <div class="card">
+        <div class="card-label" id="line-form-label">Add ingredient line</div>
+        <div class="field">
+          <label>Ingredient name</label>
+          <div class="autocomplete-wrap">
+            <input type="text" class="autocomplete-input" id="l-ingredient" placeholder="Type to search ingredients…" autocomplete="off" oninput="onIngredientInput()" onkeydown="onIngredientKeydown(event)" onfocus="onIngredientInput()" />
+            <div class="autocomplete-dropdown" id="ac-dropdown"></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Batch number</label><input type="text" id="l-batch" placeholder="e.g. BATCH-001" /></div>
+          <div class="field"><label>Use by date</label><input type="date" id="l-ubd" /></div>
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="l-qty" placeholder="e.g. 5" style="flex:1; padding:11px 13px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:16px; font-family:'Georgia',serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none;" />
+            <select id="l-unit" style="width:110px; padding:11px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:15px; font-family:'Georgia',serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none; background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path d=%22M1 1l5 5 5-5%22 stroke=%22%237a776e%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>'); background-repeat:no-repeat; background-position:right 10px center; cursor:pointer;">
+              <option value="Cases">Cases</option>
+              <option value="Units">Units</option>
+              <option value="kg">kg</option>
+              <option value="Litres">Litres</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="err-msg" id="err2"></div>
+      <div class="save-row">
+        <button class="btn btn-primary" onclick="addLine()">+ Add ingredient</button>
+        <button class="btn btn-secondary" id="save-btn" onclick="saveDelivery()" style="display:none;">Save delivery</button>
+      </div>
+      <div class="line-count" id="line-count-label"></div>
+    </div>
+  </div>
+
+  <!-- ── RECORDS PANEL ── -->
+  <div id="panel-records" style="display:none;">
+    <input type="search" class="search-box" id="search-q" placeholder="Search ingredient, invoice, staff…" oninput="renderRecords()" />
+    <div id="records-container"></div>
+  </div>
+
+  <!-- ── INGREDIENTS PANEL ── -->
+  <div id="panel-ingredients" style="display:none;">
+    <div class="card">
+      <div class="card-label">Add ingredient</div>
+      <div class="ing-add-row">
+        <input type="text" id="new-ingredient" placeholder="Ingredient name" onkeydown="if(event.key==='Enter')addIngredient()" />
+        <button class="btn-add-ing" onclick="addIngredient()">Add</button>
+      </div>
+      <div class="err-msg" id="err-ing"></div>
+      <div class="ing-count" id="ing-count"></div>
+      <div class="ing-list" id="ing-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeaZsKX7xQ_Nad2bN5T_XHD848eE_uAvIeC2vG0ien1WsIIKeWPZb9V84KPLgooFDz/exec';
+const SK_DELIVERIES = 'delivery_records_v3';
+const SK_INGREDIENTS = 'delivery_ingredients_v1';
+
+let deliveries = [];
+let ingredients = [];
+let header = null;
+let lines = [];
+let acHighlight = -1;
+
+function load() {
+  try { const d = localStorage.getItem(SK_DELIVERIES); if (d) deliveries = JSON.parse(d); } catch(e) {}
+  try { const d = localStorage.getItem(SK_INGREDIENTS); if (d) ingredients = JSON.parse(d); } catch(e) {}
+  updateCount();
+}
+function persist() {
+  try { localStorage.setItem(SK_DELIVERIES, JSON.stringify(deliveries)); } catch(e) {}
+}
+function persistIngredients() {
+  try { localStorage.setItem(SK_INGREDIENTS, JSON.stringify(ingredients)); } catch(e) {}
+}
+function updateCount() {
+  const t = deliveries.reduce((s,d) => s+d.lines.length, 0);
+  document.getElementById('rec-count').textContent = t;
+}
+function updateSyncStatus(state) {
+  const el = document.getElementById('sync-status');
+  if (state==='syncing') { el.textContent='◌ syncing'; el.style.color='#8a6500'; }
+  else if (state==='synced') { el.textContent='✓ synced'; el.style.color='#2d6e2d'; }
+  else if (state==='error') { el.textContent='✗ sync failed'; el.style.color='#c0392b'; }
+  else { el.textContent='● sheets'; el.style.color='#2d6e2d'; }
+}
+function fmt(d) { if(!d) return '—'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+function expiryStatus(ubd) {
+  if (!ubd) return 'ok';
+  const diff = Math.floor((new Date(ubd)-new Date().setHours(0,0,0,0))/86400000);
+  return diff<0?'exp':diff<=3?'warn':'ok';
+}
+function expiryBadge(ubd) {
+  const s=expiryStatus(ubd);
+  if(s==='exp') return '<span class="badge badge-exp">EXPIRED</span>';
+  if(s==='warn') return '<span class="badge badge-warn">EXPIRING</span>';
+  return '<span class="badge badge-ok">VALID</span>';
+}
+
+function showTab(t) {
+  ['entry','records','ingredients'].forEach(p => {
+    document.getElementById('panel-'+p).style.display = p===t?'':'none';
+    document.getElementById('tab-'+p).classList.toggle('active', p===t);
+  });
+  closeDropdown();
+  if(t==='records') renderRecords();
+  if(t==='ingredients') renderIngredients();
+}
+
+function setStep(n) {
+  document.getElementById('sp1').className='step-pill'+(n===1?' active':' done');
+  document.getElementById('sn1').textContent = n===1?'1':'✓';
+  document.getElementById('sp2').className='step-pill'+(n===2?' active':'');
+  document.getElementById('sn2').textContent='2';
+}
+function goStep1() {
+  closeDropdown();
+  document.getElementById('step1').style.display='';
+  document.getElementById('step2').style.display='none';
+  setStep(1);
+}
+function goStep2() {
+  const date=document.getElementById('h-date').value;
+  const invoice=document.getElementById('h-invoice').value.trim();
+  const supplier=document.getElementById('h-supplier').value.trim();
+  const staff=document.getElementById('h-staff').value.trim();
+  const missing=[];
+  if(!date) missing.push('delivery date');
+  if(!invoice) missing.push('invoice number');
+  if(!supplier) missing.push('supplier name');
+  if(!staff) missing.push('staff name');
+  const err=document.getElementById('err1');
+  if(missing.length){err.style.display='';err.textContent='Please fill in: '+missing.join(', ');return;}
+  err.style.display='none';
+  header={date,invoice,supplier,staff};
+  lines=[];
+  document.getElementById('banner-text').innerHTML=
+    `<div class="row"><div class="banner-key">Date</div><div class="banner-val">${fmt(date)}</div></div>`+
+    `<div class="row"><div class="banner-key">Invoice</div><div class="banner-val">${invoice}</div></div>`+
+    `<div class="row"><div class="banner-key">Supplier</div><div class="banner-val">${supplier}</div></div>`+
+    `<div class="row"><div class="banner-key">Staff</div><div class="banner-val">${staff}</div></div>`;
+  document.getElementById('step1').style.display='none';
+  document.getElementById('step2').style.display='';
+  setStep(2);
+  renderLines();
+  document.getElementById('l-ingredient').focus();
+}
+
+/* ── Autocomplete ── */
+function getMatches(q) {
+  if (!q) return [...ingredients].sort();
+  const lq = q.toLowerCase();
+  return ingredients.filter(i => i.toLowerCase().includes(lq)).sort((a,b)=>{
+    const ai=a.toLowerCase().indexOf(lq), bi=b.toLowerCase().indexOf(lq);
+    return ai-bi || a.localeCompare(b);
+  });
+}
+function highlight(str, q) {
+  if (!q) return str;
+  const idx = str.toLowerCase().indexOf(q.toLowerCase());
+  if (idx<0) return str;
+  return str.slice(0,idx)+'<mark>'+str.slice(idx,idx+q.length)+'</mark>'+str.slice(idx+q.length);
+}
+function onIngredientInput() {
+  const q = document.getElementById('l-ingredient').value.trim();
+  const matches = getMatches(q);
+  acHighlight = -1;
+  const dd = document.getElementById('ac-dropdown');
+  if (matches.length === 0) {
+    dd.innerHTML = `<div class="ac-empty">No ingredients match — add via the Ingredients tab</div>`;
+  } else {
+    dd.innerHTML = matches.map((m,i) =>
+      `<div class="ac-item" data-val="${m}" onmousedown="selectIngredient('${m.replace(/'/g,"\\'")}')"> ${highlight(m, q)}</div>`
+    ).join('');
+  }
+  dd.classList.add('open');
+}
+function onIngredientKeydown(e) {
+  const dd = document.getElementById('ac-dropdown');
+  const items = dd.querySelectorAll('.ac-item');
+  if (e.key==='ArrowDown') { e.preventDefault(); acHighlight=Math.min(acHighlight+1,items.length-1); updateHighlight(items); }
+  else if (e.key==='ArrowUp') { e.preventDefault(); acHighlight=Math.max(acHighlight-1,0); updateHighlight(items); }
+  else if (e.key==='Enter') { e.preventDefault(); if(acHighlight>=0&&items[acHighlight]){selectIngredient(items[acHighlight].dataset.val);} else { closeDropdown(); document.getElementById('l-batch').focus(); } }
+  else if (e.key==='Escape') { closeDropdown(); }
+  else if (e.key==='Tab') { if(acHighlight>=0&&items[acHighlight]) selectIngredient(items[acHighlight].dataset.val); closeDropdown(); }
+}
+function updateHighlight(items) {
+  items.forEach((el,i) => el.classList.toggle('highlighted', i===acHighlight));
+  if(acHighlight>=0) items[acHighlight].scrollIntoView({block:'nearest'});
+}
+function selectIngredient(val) {
+  document.getElementById('l-ingredient').value = val;
+  closeDropdown();
+  setTimeout(()=>document.getElementById('l-batch').focus(), 50);
+}
+function closeDropdown() {
+  document.getElementById('ac-dropdown').classList.remove('open');
+  acHighlight = -1;
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrap')) closeDropdown();
+});
+
+/* ── Lines ── */
+function renderLines() {
+  const c=document.getElementById('lines-list');
+  c.innerHTML=lines.map((l,i)=>`
+    <div class="line-item">
+      <div class="line-n">${i+1}</div>
+      <div class="line-body">
+        <div class="line-name">${l.ingredient}</div>
+        <div class="line-meta">Batch: ${l.batch} · UBD: ${fmt(l.ubd)} · ${l.qty}</div>
+      </div>
+      ${expiryBadge(l.ubd)}
+      <button class="btn-remove" onclick="removeLine(${i})" aria-label="Remove">×</button>
+    </div>`).join('');
+  document.getElementById('save-btn').style.display=lines.length>0?'':'none';
+  document.getElementById('line-count-label').textContent=lines.length>0?`${lines.length} ingredient line${lines.length!==1?'s':''} added`:'';
+  document.getElementById('line-form-label').textContent=lines.length>0?'Add another ingredient':'Add ingredient line';
+}
+function removeLine(i){lines.splice(i,1);renderLines();}
+function addLine() {
+  const ingredient=document.getElementById('l-ingredient').value.trim();
+  const batch=document.getElementById('l-batch').value.trim();
+  const ubd=document.getElementById('l-ubd').value;
+  const qtyNum=document.getElementById('l-qty').value.trim();
+  const unit=document.getElementById('l-unit').value;
+  const missing=[];
+  if(!ingredient) missing.push('ingredient name');
+  if(!batch) missing.push('batch number');
+  if(!ubd) missing.push('use by date');
+  if(!qtyNum) missing.push('quantity');
+  const err=document.getElementById('err2');
+  if(missing.length){err.style.display='';err.textContent='Please fill in: '+missing.join(', ');return;}
+  err.style.display='none';
+  const qty=`${qtyNum} ${unit}`;
+  lines.push({ingredient,batch,ubd,qty});
+  document.getElementById('l-ingredient').value='';
+  document.getElementById('l-batch').value='';
+  document.getElementById('l-ubd').value='';
+  document.getElementById('l-qty').value='';
+  document.getElementById('l-unit').value='Cases';
+  closeDropdown();
+  document.getElementById('l-ingredient').focus();
+  renderLines();
+}
+async function saveDelivery() {
+  if(!lines.length) return;
+  const delivery={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), ...header, lines:[...lines], savedAt:new Date().toISOString()};
+  deliveries.unshift(delivery);
+  persist();
+  updateCount();
+  lines=[];header=null;
+  ['h-date','h-invoice','h-supplier','h-staff'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('h-date').valueAsDate=new Date();
+  goStep1();
+  showTab('records');
+  if(APPS_SCRIPT_URL) {
+    updateSyncStatus('syncing');
+    try {
+      const rows=delivery.lines.map(l=>({
+        date:delivery.date, invoice:delivery.invoice, supplier:delivery.supplier, staff:delivery.staff,
+        ingredient:l.ingredient, batch:l.batch, ubd:l.ubd, qty:l.qty, savedAt:delivery.savedAt
+      }));
+      const res=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({rows}),headers:{'Content-Type':'text/plain'}});
+      const json=await res.json();
+      updateSyncStatus(json.result==='success'?'synced':'error');
+      setTimeout(()=>updateSyncStatus('sheets'),4000);
+    } catch(e) {
+      updateSyncStatus('error');
+      setTimeout(()=>updateSyncStatus('sheets'),4000);
+    }
+  }
+}
+
+/* ── Records ── */
+function renderRecords() {
+  const q=(document.getElementById('search-q').value||'').toLowerCase();
+  const c=document.getElementById('records-container');
+  const filtered=deliveries.map(d=>({...d,lines:d.lines.filter(l=>!q||[l.ingredient,l.batch,d.invoice,d.supplier,d.staff].some(v=>v&&v.toLowerCase().includes(q)))})).filter(d=>d.lines.length>0);
+  if(!filtered.length){
+    c.innerHTML=`<div class="empty"><div class="icon">📋</div>${deliveries.length?'No results match your search':'No deliveries recorded yet'}</div>`;
+    return;
+  }
+  c.innerHTML=filtered.map(d=>`
+    <div class="delivery-group">
+      <div class="group-header">
+        <div class="group-meta">
+          <strong>${fmt(d.date)}</strong>
+          <div class="inv">${d.invoice} · ${d.supplier} · ${d.staff}</div>
+        </div>
+        <div class="group-count">${d.lines.length} line${d.lines.length!==1?'s':''}</div>
+      </div>
+      ${d.lines.map((l)=>`
+        <div class="line-record">
+          <div class="lr-top"><div class="lr-name">${l.ingredient}</div>${expiryBadge(l.ubd)}</div>
+          <div class="lr-meta"><span>Batch: ${l.batch}</span><span>UBD: ${fmt(l.ubd)}</span><span>Qty: ${l.qty}</span></div>
+        </div>`).join('')}
+    </div>`).join('<hr style="border:none;border-top:1px solid var(--border);margin:0 0 20px;">');
+}
+
+/* ── Ingredients manager ── */
+function renderIngredients() {
+  const list = document.getElementById('ing-list');
+  const count = document.getElementById('ing-count');
+  const sorted = [...ingredients].sort();
+  count.textContent = sorted.length ? `${sorted.length} ingredient${sorted.length!==1?'s':''} in list` : '';
+  if (!sorted.length) {
+    list.innerHTML = '<div class="ing-empty">No ingredients yet — add some above</div>';
+    return;
+  }
+  list.innerHTML = sorted.map(ing => `
+    <div class="ing-item">
+      <span>${ing}</span>
+      <button class="btn-del-ing" onclick="deleteIngredient('${ing.replace(/'/g,"\\'")}')">×</button>
+    </div>`).join('');
+}
+function addIngredient() {
+  const input = document.getElementById('new-ingredient');
+  const val = input.value.trim();
+  const err = document.getElementById('err-ing');
+  if (!val) { err.style.display=''; err.textContent='Please enter an ingredient name.'; return; }
+  if (ingredients.some(i => i.toLowerCase()===val.toLowerCase())) { err.style.display=''; err.textContent=`"${val}" is already in the list.`; return; }
+  err.style.display='none';
+  ingredients.push(val);
+  persistIngredients();
+  input.value='';
+  renderIngredients();
+  input.focus();
+}
+function deleteIngredient(ing) {
+  ingredients = ingredients.filter(i => i !== ing);
+  persistIngredients();
+  renderIngredients();
+}
+
+document.getElementById('h-date').valueAsDate = new Date();
+load();
+</script>
+</body>
+</html>
