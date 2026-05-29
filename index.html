@@ -198,8 +198,8 @@
         <div class="field">
           <label>Quantity</label>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="l-qty" placeholder="e.g. 5" style="flex:1; padding:11px 13px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:16px; font-family:'Georgia',serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none;" />
-            <select id="l-unit" style="width:110px; padding:11px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:15px; font-family:'Georgia',serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none; background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path d=%22M1 1l5 5 5-5%22 stroke=%22%237a776e%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>'); background-repeat:no-repeat; background-position:right 10px center; cursor:pointer;">
+            <input type="text" id="l-qty" placeholder="e.g. 5" style="flex:1; padding:11px 13px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:16px; font-family:'Lexend',sans-serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none;" />
+            <select id="l-unit" style="width:110px; padding:11px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:15px; font-family:'Lexend',sans-serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none; background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path d=%22M1 1l5 5 5-5%22 stroke=%22%237a776e%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>'); background-repeat:no-repeat; background-position:right 10px center; cursor:pointer;">
               <option value="Cases">Cases</option>
               <option value="Units">Units</option>
               <option value="kg">kg</option>
@@ -241,9 +241,8 @@
 </div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby76m84wPowU7dVYAGNcyfP1YbuHIZic37HOj8UlDnSl_66Tm9qMfxtvf5M9_J797uO/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylHsMZL3WvAOTCSVHvvm5sHRlgcY7wbJPTMAlq0pc7sHz83QzIF-7ugPXl1x4TShGX/exec';
 const SK_DELIVERIES = 'delivery_records_v3';
-const SK_INGREDIENTS = 'delivery_ingredients_v1';
 
 let deliveries = [];
 let ingredients = [];
@@ -251,16 +250,31 @@ let header = null;
 let lines = [];
 let acHighlight = -1;
 
-function load() {
+async function load() {
   try { const d = localStorage.getItem(SK_DELIVERIES); if (d) deliveries = JSON.parse(d); } catch(e) {}
-  try { const d = localStorage.getItem(SK_INGREDIENTS); if (d) ingredients = JSON.parse(d); } catch(e) {}
   updateCount();
+  await fetchIngredients();
 }
 function persist() {
   try { localStorage.setItem(SK_DELIVERIES, JSON.stringify(deliveries)); } catch(e) {}
 }
-function persistIngredients() {
-  try { localStorage.setItem(SK_INGREDIENTS, JSON.stringify(ingredients)); } catch(e) {}
+
+/* ── Ingredients — synced from Sheets ── */
+async function fetchIngredients() {
+  const ingTab = document.getElementById('tab-ingredients');
+  ingTab.textContent = 'Ingredients …';
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getIngredients');
+    const json = await res.json();
+    if (json.ingredients) {
+      ingredients = json.ingredients.filter(i => i && i.trim());
+      ingredients.sort((a,b) => a.localeCompare(b));
+    }
+  } catch(e) {
+    // fall back to empty list silently
+  }
+  ingTab.textContent = 'Ingredients';
+  renderIngredients();
 }
 function updateCount() {
   const t = deliveries.reduce((s,d) => s+d.lines.length, 0);
@@ -293,7 +307,7 @@ function showTab(t) {
   });
   closeDropdown();
   if(t==='records') renderRecords();
-  if(t==='ingredients') renderIngredients();
+  if(t==='ingredients') { renderIngredients(); fetchIngredients(); }
 }
 
 function setStep(n) {
@@ -504,23 +518,39 @@ function renderIngredients() {
       <button class="btn-del-ing" onclick="deleteIngredient('${ing.replace(/'/g,"\\'")}')">×</button>
     </div>`).join('');
 }
-function addIngredient() {
+async function addIngredient() {
   const input = document.getElementById('new-ingredient');
   const val = input.value.trim();
   const err = document.getElementById('err-ing');
   if (!val) { err.style.display=''; err.textContent='Please enter an ingredient name.'; return; }
   if (ingredients.some(i => i.toLowerCase()===val.toLowerCase())) { err.style.display=''; err.textContent=`"${val}" is already in the list.`; return; }
   err.style.display='none';
-  ingredients.push(val);
-  persistIngredients();
-  input.value='';
-  renderIngredients();
-  input.focus();
+  const btn = document.querySelector('.btn-add-ing');
+  btn.textContent='Saving…'; btn.disabled=true;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'addIngredient', ingredient:val}), headers:{'Content-Type':'text/plain'}});
+    const json = await res.json();
+    if (json.result==='success') {
+      ingredients.push(val);
+      ingredients.sort((a,b)=>a.localeCompare(b));
+      input.value='';
+      renderIngredients();
+      input.focus();
+    } else { err.style.display=''; err.textContent='Failed to save — please try again.'; }
+  } catch(e) { err.style.display=''; err.textContent='No connection — check your internet and try again.'; }
+  btn.textContent='Add'; btn.disabled=false;
 }
-function deleteIngredient(ing) {
-  ingredients = ingredients.filter(i => i !== ing);
-  persistIngredients();
-  renderIngredients();
+async function deleteIngredient(ing) {
+  const btn = document.querySelector(`.btn-del-ing[onclick*="${ing.replace(/'/g,"\\'")}"]`);
+  if (btn) { btn.textContent='…'; btn.disabled=true; }
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'deleteIngredient', ingredient:ing}), headers:{'Content-Type':'text/plain'}});
+    const json = await res.json();
+    if (json.result==='success') {
+      ingredients = ingredients.filter(i => i !== ing);
+      renderIngredients();
+    }
+  } catch(e) { renderIngredients(); }
 }
 
 document.getElementById('h-date').valueAsDate = new Date();
