@@ -450,7 +450,7 @@ function renderLines() {
       <div class="line-n">${i+1}</div>
       <div class="line-body">
         <div class="line-name">${l.ingredient}</div>
-        <div class="line-meta">Batch: ${l.batch} · UBD: ${fmt(l.ubd)} · ${l.qty}</div>
+        <div class="line-meta">Batch: ${l.batch} · UBD: ${fmt(l.ubd)} · ${l.qty} ${l.unit}</div>
         <div style="display:flex;gap:5px;margin-top:4px;">
           <span class="check-tag ${l.condition?'check-tag-ok':'check-tag-fail'}">${l.condition?'✓ Good condition':'✗ Condition'}</span>
           <span class="check-tag ${l.storage?'check-tag-ok':'check-tag-fail'}">${l.storage?'✓ Correct storage':'✗ Storage'}</span>
@@ -485,8 +485,7 @@ function addLine() {
     return;
   }
   document.getElementById('check-warn').style.display='none';
-  const qty=`${qtyNum} ${unit}`;
-  lines.push({ingredient,batch,ubd,qty,condition,storage});
+  lines.push({ingredient,batch,ubd,qty:qtyNum,unit,condition,storage});
   document.getElementById('l-ingredient').value='';
   document.getElementById('l-batch').value='';
   document.getElementById('l-ubd').value='';
@@ -516,7 +515,7 @@ async function saveDelivery() {
     try {
       const rows=delivery.lines.map(l=>({
         date:delivery.date, invoice:delivery.invoice, supplier:delivery.supplier, staff:delivery.staff,
-        ingredient:l.ingredient, batch:l.batch, ubd:l.ubd, qty:l.qty,
+        ingredient:l.ingredient, batch:l.batch, ubd:l.ubd, qty:l.qty, unit:l.unit,
         condition:l.condition?'Yes':'No', storage:l.storage?'Yes':'No', savedAt:delivery.savedAt
       }));
       const res=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({rows}),headers:{'Content-Type':'text/plain'}});
@@ -551,7 +550,7 @@ function renderRecords() {
       ${d.lines.map((l)=>`
         <div class="line-record">
           <div class="lr-top"><div class="lr-name">${l.ingredient}</div>${expiryBadge(l.ubd)}</div>
-          <div class="lr-meta"><span>Batch: ${l.batch}</span><span>UBD: ${fmt(l.ubd)}</span><span>Qty: ${l.qty}</span></div>
+          <div class="lr-meta"><span>Batch: ${l.batch}</span><span>UBD: ${fmt(l.ubd)}</span><span>Qty: ${l.qty} ${l.unit||''}</span></div>
           <div class="lr-checks">
             <span class="check-tag ${l.condition?'check-tag-ok':'check-tag-fail'}">${l.condition?'✓ Good condition':'✗ Condition issue'}</span>
             <span class="check-tag ${l.storage?'check-tag-ok':'check-tag-fail'}">${l.storage?'✓ Correct storage':'✗ Storage issue'}</span>
