@@ -112,6 +112,14 @@
   .btn-remove { background: transparent; border: none; font-size: 18px; color: var(--text-hint); cursor: pointer; padding: 4px; line-height: 1; flex-shrink: 0; }
 
   .save-row { display: flex; gap: 8px; flex-direction: column; }
+  /* Ingredient picker grid in step 2 */
+  .ing-picker-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .ing-picker-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background .12s, border-color .12s; }
+  .ing-picker-card:active { background: var(--bg); border-color: var(--accent); }
+  .ing-picker-card.added { border-color: #b2d9b2; background: var(--success-bg); }
+  .ing-picker-name { font-size: 14px; font-weight: 500; flex: 1; }
+  .ing-picker-count { font-size: 11px; font-family: 'Courier New', monospace; color: var(--success-text); background: var(--success-bg); border: 1px solid #b2d9b2; border-radius: 20px; padding: 2px 8px; }
+  .ing-picker-empty { text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 14px; }
   .line-count { text-align: center; font-size: 12px; font-family: 'Courier New', monospace; color: var(--text-muted); margin-top: 6px; }
 
   .delivery-group { margin-bottom: 20px; }
@@ -155,6 +163,17 @@
   .btn-del-ing { background: transparent; border: none; font-size: 18px; color: var(--text-hint); cursor: pointer; padding: 2px 6px; line-height: 1; }
   .btn-del-ing:active { color: var(--danger-text); }
   .ing-empty { text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 13px; font-family: 'Courier New', monospace; }
+  .supplier-tag { display: inline-block; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; font-size: 11px; font-family: 'Courier New', monospace; color: var(--text-muted); margin: 2px; }
+  .supplier-tag.linked { background: var(--success-bg); border-color: #b2d9b2; color: var(--success-text); }
+  .supplier-check-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); cursor: pointer; margin-bottom: 6px; }
+  .supplier-check-row input[type=checkbox] { width: 18px; height: 18px; accent-color: #2d6e2d; flex-shrink: 0; }
+  .supplier-check-row span { font-size: 14px; }
+  .ing-item { display: flex; align-items: flex-start; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; margin-bottom: 6px; gap: 8px; }
+  .ing-item-body { flex: 1; min-width: 0; }
+  .ing-item-name { font-size: 14px; margin-bottom: 4px; }
+  .ing-item-suppliers { display: flex; flex-wrap: wrap; gap: 2px; }
+  .ing-item-actions { display: flex; gap: 6px; align-items: flex-start; flex-shrink: 0; }
+  .btn-suppliers { padding: 4px 9px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: transparent; cursor: pointer; color: var(--text-muted); font-family: 'Lexend', sans-serif; }
   .ing-count { font-size: 12px; font-family: 'Courier New', monospace; color: var(--text-muted); margin-bottom: 12px; }
 
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
@@ -196,59 +215,64 @@
       <button class="btn btn-primary" onclick="goStep2()">Continue →</button>
     </div>
 
-    <!-- Step 2 -->
+    <!-- Step 2: ingredient picker + lines added -->
     <div id="step2" style="display:none;">
       <div class="delivery-banner">
         <div class="banner-info" id="banner-text"></div>
         <button class="btn-edit" onclick="goStep1()">Edit</button>
       </div>
 
+      <!-- Lines already added this delivery -->
       <div class="lines-list" id="lines-list"></div>
 
-      <div class="card">
-        <div class="card-label" id="line-form-label">Add ingredient line</div>
-        <div class="field">
-          <label>Ingredient name</label>
-          <div class="autocomplete-wrap">
-            <input type="text" class="autocomplete-input" id="l-ingredient" placeholder="Type to search ingredients…" autocomplete="off" oninput="onIngredientInput()" onkeydown="onIngredientKeydown(event)" onfocus="onIngredientInput()" />
-            <div class="autocomplete-dropdown" id="ac-dropdown"></div>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>Batch number</label><input type="text" id="l-batch" placeholder="e.g. BATCH-001" /></div>
-          <div class="field"><label>Use by date</label><input type="date" id="l-ubd" /></div>
-        </div>
-        <div class="field">
-          <label>Quantity</label>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="l-qty" placeholder="e.g. 5" style="flex:1; padding:11px 13px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:16px; font-family:'Lexend',sans-serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none;" />
-            <select id="l-unit" style="width:110px; padding:11px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:15px; font-family:'Lexend',sans-serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none; background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path d=%22M1 1l5 5 5-5%22 stroke=%22%237a776e%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>'); background-repeat:no-repeat; background-position:right 10px center; cursor:pointer;">
-              <option value="Cases">Cases</option>
-              <option value="Units">Units</option>
-              <option value="kg">kg</option>
-              <option value="Litres">Litres</option>
-            </select>
-          </div>
-        </div>
-        <div class="checks-row">
-          <label class="check-box" id="cb-condition-wrap">
-            <input type="checkbox" id="l-condition" onchange="toggleCheck('cb-condition-wrap',this)" />
-            <span>Good condition</span>
-          </label>
-          <label class="check-box" id="cb-storage-wrap">
-            <input type="checkbox" id="l-storage" onchange="toggleCheck('cb-storage-wrap',this)" />
-            <span>Correct storage</span>
-          </label>
-        </div>
-        <div class="check-warn" id="check-warn">⚠ Please confirm both checks before adding this ingredient.</div>
-      </div>
+      <!-- Scrollable ingredient picker -->
+      <div class="card-label" style="margin-bottom:8px;" id="ing-picker-label">Tap an ingredient to add it</div>
+      <div id="ing-picker-grid"></div>
 
-      <div class="err-msg" id="err2"></div>
-      <div class="save-row">
-        <button class="btn btn-primary" onclick="addLine()">+ Add ingredient</button>
+      <!-- Save delivery button (shown once at least one line added) -->
+      <div class="save-row" style="margin-top:12px;">
         <button class="btn btn-secondary" id="save-btn" onclick="saveDelivery()" style="display:none;">Save delivery</button>
       </div>
       <div class="line-count" id="line-count-label"></div>
+    </div>
+  </div>
+
+  <!-- ── INGREDIENT DETAIL SHEET (slides up when ingredient tapped) ── -->
+  <div id="ing-detail-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;align-items:flex-end;" onclick="closeIngDetail()">
+    <div style="background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:20px;width:100%;max-height:85vh;overflow-y:auto;" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-size:16px;font-weight:500;" id="detail-ing-name"></div>
+        <button onclick="closeIngDetail()" style="font-size:22px;color:var(--text-muted);background:none;border:none;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Batch number</label><input type="text" id="l-batch" placeholder="e.g. BATCH-001" /></div>
+        <div class="field"><label>Use by date</label><input type="date" id="l-ubd" /></div>
+      </div>
+      <div class="field">
+        <label>Quantity</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="l-qty" placeholder="e.g. 5" style="flex:1;padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-family:Lexend,sans-serif;background:var(--surface);color:var(--text);appearance:none;-webkit-appearance:none;outline:none;" />
+          <select id="l-unit" style="width:110px;padding:11px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:Lexend,sans-serif;background:var(--surface);color:var(--text);appearance:none;-webkit-appearance:none;outline:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path d=%22M1 1l5 5 5-5%22 stroke=%22%237a776e%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>');background-repeat:no-repeat;background-position:right 10px center;cursor:pointer;">
+            <option value="Cases">Cases</option>
+            <option value="Units">Units</option>
+            <option value="kg">kg</option>
+            <option value="Litres">Litres</option>
+          </select>
+        </div>
+      </div>
+      <div class="checks-row">
+        <label class="check-box" id="cb-condition-wrap">
+          <input type="checkbox" id="l-condition" onchange="toggleCheck('cb-condition-wrap',this)" />
+          <span>Good condition</span>
+        </label>
+        <label class="check-box" id="cb-storage-wrap">
+          <input type="checkbox" id="l-storage" onchange="toggleCheck('cb-storage-wrap',this)" />
+          <span>Correct storage</span>
+        </label>
+      </div>
+      <div class="check-warn" id="check-warn" style="margin-top:8px;">⚠ Please confirm both checks before adding.</div>
+      <div class="err-msg" id="err2" style="margin-top:8px;"></div>
+      <button class="btn btn-primary" style="margin-top:14px;" onclick="addLine()">+ Add this ingredient</button>
     </div>
   </div>
 
@@ -274,12 +298,40 @@
 
 </div>
 
+<!-- Supplier-ingredient link modal -->
+<div id="supplier-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;align-items:flex-end;" onclick="closeSupplierModal()">
+  <div style="background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div style="font-size:16px;font-weight:500;" id="supplier-modal-title"></div>
+      <button onclick="closeSupplierModal()" style="font-size:22px;color:var(--text-muted);background:none;border:none;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Tick every supplier this ingredient can be ordered from.</div>
+    <div id="supplier-modal-list" style="margin-bottom:14px;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <input type="text" id="new-supplier-input" placeholder="Add new supplier…" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:Lexend,sans-serif;outline:none;" onkeydown="if(event.key==='Enter')addSupplierFromModal()" />
+      <button onclick="addSupplierFromModal()" style="padding:10px 16px;background:var(--accent);color:var(--accent-fg);border:none;border-radius:var(--radius-sm);font-size:14px;font-family:Lexend,sans-serif;cursor:pointer;">Add</button>
+    </div>
+    <button onclick="saveSupplierLinks()" style="width:100%;padding:13px;background:var(--accent);color:var(--accent-fg);border:none;border-radius:var(--radius-sm);font-size:15px;font-family:Lexend,sans-serif;cursor:pointer;">Save supplier links</button>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" style="position:fixed;bottom:20px;right:20px;background:var(--accent);color:var(--accent-fg);padding:10px 18px;border-radius:var(--radius-sm);font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99;"></div>
+
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5E69ZvBuX72YUsjEFjj4FiqVZs3y7EQlMK9euVbcYv7Ln1XcxquugaTbOgtPczaqj/exec';
+const STOCK_CHECK_URL = 'https://script.google.com/macros/s/AKfycbx8donnPrSqM5aI5d8dMSMIBdOWuITzljNxTRj46div5S_VfuvODutQhQGUcHHXN5bJ_A/exec';
 const SK_DELIVERIES = 'delivery_records_v3';
 
 let deliveries = [];
+// ingredients: array of objects { name: string, suppliers: string[] }
 let ingredients = [];
+// allSuppliers: deduplicated list of all supplier names
+let allSuppliers = [];
+// ingredientPhotos: name → photo URL, fetched from stock check Sheets
+let ingredientPhotos = {};
+let editingIngredient = null;
+let selectedIngredient = null; // name of ingredient tapped in the picker
 let header = null;
 let lines = [];
 let acHighlight = -1;
@@ -287,7 +339,18 @@ let acHighlight = -1;
 async function load() {
   try { const d = localStorage.getItem(SK_DELIVERIES); if (d) deliveries = JSON.parse(d); } catch(e) {}
   updateCount();
-  await fetchIngredients();
+  await Promise.all([fetchIngredients(), fetchIngredientPhotos()]);
+}
+
+async function fetchIngredientPhotos() {
+  try {
+    const res = await fetch(STOCK_CHECK_URL + '?action=getIngredients');
+    const json = await res.json();
+    if (json.ingredients) {
+      ingredientPhotos = {};
+      json.ingredients.forEach(i => { if (i.photo) ingredientPhotos[i.name] = i.photo; });
+    }
+  } catch(e) {} // silently fall back — photos are optional
 }
 function persist() {
   try { localStorage.setItem(SK_DELIVERIES, JSON.stringify(deliveries)); } catch(e) {}
@@ -301,14 +364,21 @@ async function fetchIngredients() {
     const res = await fetch(APPS_SCRIPT_URL + '?action=getIngredients');
     const json = await res.json();
     if (json.ingredients) {
-      ingredients = json.ingredients.filter(i => i && i.trim());
-      ingredients.sort((a,b) => a.localeCompare(b));
+      // Support both legacy (plain strings) and new (objects with suppliers) format
+      ingredients = json.ingredients
+        .filter(i => i)
+        .map(i => typeof i === 'string' ? { name: i, suppliers: [] } : i)
+        .sort((a,b) => a.name.localeCompare(b.name));
+      rebuildAllSuppliers();
     }
-  } catch(e) {
-    // fall back to empty list silently
-  }
+  } catch(e) {}
   ingTab.textContent = 'Ingredients';
   renderIngredients();
+}
+function rebuildAllSuppliers() {
+  const set = new Set();
+  ingredients.forEach(i => (i.suppliers||[]).forEach(s => set.add(s)));
+  allSuppliers = [...set].sort();
 }
 function updateCount() {
   const t = deliveries.reduce((s,d) => s+d.lines.length, 0);
@@ -380,63 +450,79 @@ function goStep2() {
   document.getElementById('step2').style.display='';
   setStep(2);
   renderLines();
-  document.getElementById('l-ingredient').focus();
+  renderIngPicker();
 }
 
-/* ── Autocomplete ── */
-function getMatches(q) {
-  if (!q) return [...ingredients].sort();
-  const lq = q.toLowerCase();
-  return ingredients.filter(i => i.toLowerCase().includes(lq)).sort((a,b)=>{
-    const ai=a.toLowerCase().indexOf(lq), bi=b.toLowerCase().indexOf(lq);
-    return ai-bi || a.localeCompare(b);
+/* ── Ingredient picker ── */
+function getFilteredIngredients() {
+  // Filter by current supplier if one is set in the delivery header.
+  // Ingredients with no supplier links show for all suppliers (not yet configured).
+  const supplier = header ? header.supplier.trim().toLowerCase() : '';
+  if (!supplier) return ingredients;
+  return ingredients.filter(ing => {
+    const sup = ing.suppliers || [];
+    return sup.length === 0 || sup.some(s => s.toLowerCase() === supplier);
   });
 }
-function highlight(str, q) {
-  if (!q) return str;
-  const idx = str.toLowerCase().indexOf(q.toLowerCase());
-  if (idx<0) return str;
-  return str.slice(0,idx)+'<mark>'+str.slice(idx,idx+q.length)+'</mark>'+str.slice(idx+q.length);
-}
-function onIngredientInput() {
-  const q = document.getElementById('l-ingredient').value.trim();
-  const matches = getMatches(q);
-  acHighlight = -1;
-  const dd = document.getElementById('ac-dropdown');
-  if (matches.length === 0) {
-    dd.innerHTML = `<div class="ac-empty">No ingredients match — add via the Ingredients tab</div>`;
-  } else {
-    dd.innerHTML = matches.map((m,i) =>
-      `<div class="ac-item" data-val="${m}" onmousedown="selectIngredient('${m.replace(/'/g,"\\'")}')"> ${highlight(m, q)}</div>`
-    ).join('');
+
+function renderIngPicker() {
+  const pool = getFilteredIngredients();
+  const grid = document.getElementById('ing-picker-grid');
+  const label = document.getElementById('ing-picker-label');
+  if (!pool.length) {
+    const supplier = header ? header.supplier : 'this supplier';
+    grid.innerHTML = `<div class="ing-picker-empty">No ingredients linked to <strong>${supplier}</strong> yet.<br><span style="font-size:13px;">Go to the Ingredients tab to link them.</span></div>`;
+    if (label) label.style.display = 'none';
+    return;
   }
-  dd.classList.add('open');
+  if (label) label.style.display = '';
+  // Count how many times each ingredient has already been added this delivery
+  const counts = {};
+  lines.forEach(l => { counts[l.ingredient] = (counts[l.ingredient]||0)+1; });
+  grid.innerHTML = pool.map(ing => {
+    const count = counts[ing.name] || 0;
+    const addedClass = count > 0 ? ' added' : '';
+    const countBadge = count > 0 ? `<span class="ing-picker-count">×${count} added</span>` : '';
+    const photo = ingredientPhotos[ing.name];
+    const photoHtml = photo
+      ? `<img src="${photo}" onerror="this.style.display='none'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);" />`
+      : `<div style="width:44px;height:44px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🥫</div>`;
+    return `<div class="ing-picker-card${addedClass}" onclick="openIngDetail('${ing.name.replace(/'/g,"\\'")}')">
+      ${photoHtml}
+      <div class="ing-picker-name">${ing.name}</div>
+      ${countBadge}
+    </div>`;
+  }).join('');
 }
-function onIngredientKeydown(e) {
-  const dd = document.getElementById('ac-dropdown');
-  const items = dd.querySelectorAll('.ac-item');
-  if (e.key==='ArrowDown') { e.preventDefault(); acHighlight=Math.min(acHighlight+1,items.length-1); updateHighlight(items); }
-  else if (e.key==='ArrowUp') { e.preventDefault(); acHighlight=Math.max(acHighlight-1,0); updateHighlight(items); }
-  else if (e.key==='Enter') { e.preventDefault(); if(acHighlight>=0&&items[acHighlight]){selectIngredient(items[acHighlight].dataset.val);} else { closeDropdown(); document.getElementById('l-batch').focus(); } }
-  else if (e.key==='Escape') { closeDropdown(); }
-  else if (e.key==='Tab') { if(acHighlight>=0&&items[acHighlight]) selectIngredient(items[acHighlight].dataset.val); closeDropdown(); }
+
+function openIngDetail(ingName) {
+  selectedIngredient = ingName;
+  // Show photo + name in the detail sheet header
+  const photo = ingredientPhotos[ingName];
+  const nameEl = document.getElementById('detail-ing-name');
+  nameEl.innerHTML = photo
+    ? `<img src="${photo}" onerror="this.style.display='none'" style="width:36px;height:36px;border-radius:6px;object-fit:cover;border:1px solid var(--border);vertical-align:middle;margin-right:10px;" />${ingName}`
+    : ingName;
+  // Reset all fields
+  document.getElementById('l-batch').value = '';
+  document.getElementById('l-ubd').value = '';
+  document.getElementById('l-qty').value = '';
+  document.getElementById('l-unit').value = 'Cases';
+  document.getElementById('l-condition').checked = false;
+  document.getElementById('l-storage').checked = false;
+  document.getElementById('cb-condition-wrap').classList.remove('checked');
+  document.getElementById('cb-storage-wrap').classList.remove('checked');
+  document.getElementById('check-warn').style.display = 'none';
+  document.getElementById('err2').style.display = 'none';
+  document.getElementById('ing-detail-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('l-batch').focus(), 100);
 }
-function updateHighlight(items) {
-  items.forEach((el,i) => el.classList.toggle('highlighted', i===acHighlight));
-  if(acHighlight>=0) items[acHighlight].scrollIntoView({block:'nearest'});
+
+function closeIngDetail() {
+  document.getElementById('ing-detail-overlay').style.display = 'none';
+  selectedIngredient = null;
 }
-function selectIngredient(val) {
-  document.getElementById('l-ingredient').value = val;
-  closeDropdown();
-  setTimeout(()=>document.getElementById('l-batch').focus(), 50);
-}
-function closeDropdown() {
-  document.getElementById('ac-dropdown').classList.remove('open');
-  acHighlight = -1;
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('.autocomplete-wrap')) closeDropdown();
-});
+
 
 /* ── Lines ── */
 function toggleCheck(wrapId, cb) {
@@ -465,7 +551,7 @@ function renderLines() {
 }
 function removeLine(i){lines.splice(i,1);renderLines();}
 function addLine() {
-  const ingredient=document.getElementById('l-ingredient').value.trim();
+  const ingredient = selectedIngredient || '';
   const batch=document.getElementById('l-batch').value.trim();
   const ubd=document.getElementById('l-ubd').value;
   const qtyNum=document.getElementById('l-qty').value.trim();
@@ -495,9 +581,9 @@ function addLine() {
   document.getElementById('l-storage').checked=false;
   document.getElementById('cb-condition-wrap').classList.remove('checked');
   document.getElementById('cb-storage-wrap').classList.remove('checked');
-  closeDropdown();
-  document.getElementById('l-ingredient').focus();
+  closeIngDetail();
   renderLines();
+  renderIngPicker();
 }
 async function saveDelivery() {
   if(!lines.length) return;
@@ -580,16 +666,18 @@ async function addIngredient() {
   const val = input.value.trim();
   const err = document.getElementById('err-ing');
   if (!val) { err.style.display=''; err.textContent='Please enter an ingredient name.'; return; }
-  if (ingredients.some(i => i.toLowerCase()===val.toLowerCase())) { err.style.display=''; err.textContent=`"${val}" is already in the list.`; return; }
+  if (ingredients.some(i => i.name.toLowerCase()===val.toLowerCase())) { err.style.display=''; err.textContent=`"${val}" is already in the list.`; return; }
   err.style.display='none';
   const btn = document.querySelector('.btn-add-ing');
   btn.textContent='Saving…'; btn.disabled=true;
   try {
-    const res = await fetch(APPS_SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'addIngredient', ingredient:val}), headers:{'Content-Type':'text/plain'}});
+    const newIng = { name: val, suppliers: [] };
+    const res = await fetch(APPS_SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'saveIngredientObj', ingredient:newIng}), headers:{'Content-Type':'text/plain'}});
     const json = await res.json();
     if (json.result==='success') {
-      ingredients.push(val);
-      ingredients.sort((a,b)=>a.localeCompare(b));
+      ingredients.push(newIng);
+      ingredients.sort((a,b)=>a.name.localeCompare(b.name));
+      rebuildAllSuppliers();
       input.value='';
       renderIngredients();
       input.focus();
@@ -608,6 +696,65 @@ async function deleteIngredient(ing) {
       renderIngredients();
     }
   } catch(e) { renderIngredients(); }
+}
+
+
+/* ── Supplier modal ── */
+function openSupplierModal(ingName) {
+  editingIngredient = ingName;
+  const ing = ingredients.find(i => i.name === ingName);
+  document.getElementById('supplier-modal-title').textContent = ingName;
+  document.getElementById('new-supplier-input').value = '';
+  renderSupplierModalList(ing ? (ing.suppliers || []) : []);
+  document.getElementById('supplier-modal').style.display = 'flex';
+}
+function renderSupplierModalList(selected) {
+  const list = document.getElementById('supplier-modal-list');
+  const combined = [...new Set([...allSuppliers, ...selected])].sort();
+  if (!combined.length) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text-muted);">No suppliers yet — type one below and tap Add.</div>';
+    return;
+  }
+  list.innerHTML = combined.map(s => `
+    <label class="supplier-check-row">
+      <input type="checkbox" value="${s.replace(/"/g,'&quot;')}" ${selected.includes(s)?'checked':''} />
+      <span>${s}</span>
+    </label>`).join('');
+}
+function addSupplierFromModal() {
+  const input = document.getElementById('new-supplier-input');
+  const val = input.value.trim();
+  if (!val) return;
+  input.value = '';
+  if (!allSuppliers.includes(val)) { allSuppliers.push(val); allSuppliers.sort(); }
+  const checks = [...document.querySelectorAll('#supplier-modal-list input[type=checkbox]')];
+  const current = checks.filter(c => c.checked).map(c => c.value);
+  if (!current.includes(val)) current.push(val);
+  renderSupplierModalList(current);
+}
+function closeSupplierModal() {
+  document.getElementById('supplier-modal').style.display = 'none';
+  editingIngredient = null;
+}
+async function saveSupplierLinks() {
+  const checks = [...document.querySelectorAll('#supplier-modal-list input[type=checkbox]')];
+  const selected = checks.filter(c => c.checked).map(c => c.value);
+  const idx = ingredients.findIndex(i => i.name === editingIngredient);
+  if (idx < 0) { closeSupplierModal(); return; }
+  ingredients[idx].suppliers = selected;
+  rebuildAllSuppliers();
+  try {
+    await fetch(APPS_SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'saveIngredientObj', ingredient:ingredients[idx]}), headers:{'Content-Type':'text/plain'}});
+  } catch(e) {}
+  closeSupplierModal();
+  renderIngredients();
+  showToast('Suppliers saved ✓');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 2500);
 }
 
 document.getElementById('h-date').valueAsDate = new Date();
