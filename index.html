@@ -293,6 +293,10 @@
       </select>
     </div>
     <div class="field">
+      <label>Custom Emoji or Image URL (Optional)</label>
+      <input type="text" id="modal-ing-icon" placeholder="e.g. 🥡, 🥤, or http://..." />
+    </div>
+    <div class="field">
       <label>Linked Suppliers (Optional)</label>
       <div id="modal-supplier-list" class="supplier-list-scroll"></div>
     </div>
@@ -346,7 +350,7 @@
 
 <script>
   // UPDATE YOUR APPS SCRIPT URL HERE IF NEEDED
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuJAISYE1Hk4e4aqpJyjfIxamAI874RNtis_JQrHSYb59ydEI0bPF9mN6ApRgKtZCP/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwf9KST0zXqK-b5i7sLjDasW3Silicg3ehJT82F9jT493k8Igft5MwlBBcwREGuF4xh/exec';
   const STOCK_CHECK_URL = 'https://script.google.com/macros/s/AKfycbx8donnPrSqM5aI5d8dMSMIBdOWuITzljNxTRj46div5S_VfuvODutQhQGUcHHXN5bJ_A/exec';
   const SK_DELIVERIES = 'delivery_records_v3';
   const SK_SUPPLIERS  = 'delivery_suppliers_v1';
@@ -415,6 +419,7 @@
             }
             if (!Array.isArray(i.suppliers)) i.suppliers = [];
             i.storageType = i.storageType || 'Ambient'; // Default to ambient if missing
+            i.icon = i.icon || ''; // Custom emoji or image URL
             return i;
           })
           .sort((a,b) => a.name.localeCompare(b.name));
@@ -551,9 +556,19 @@
           const addedClass = count > 0 ? ' added' : '';
           const countBadge = count > 0 ? `<span class="ing-picker-count">×${count} added</span>` : '';
           const photo = ingredientPhotos[ing.name];
-          const photoHtml = photo
-            ? `<img src="${photo}" onerror="this.style.display='none'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);" />`
-            : `<div style="width:44px;height:44px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🥫</div>`;
+          const fallbackEmoji = ing.storageType === 'Packaging' ? '📦' : '🥫';
+          
+          let photoHtml = '';
+          if (ing.icon && ing.icon.startsWith('http')) {
+            photoHtml = `<img src="${ing.icon}" onerror="this.style.display='none'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);" />`;
+          } else if (ing.icon) {
+            photoHtml = `<div style="width:44px;height:44px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">${ing.icon}</div>`;
+          } else if (photo) {
+            photoHtml = `<img src="${photo}" onerror="this.style.display='none'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);" />`;
+          } else {
+            photoHtml = `<div style="width:44px;height:44px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${fallbackEmoji}</div>`;
+          }
+          
           return `<div class="ing-picker-card${addedClass}" onclick="openIngDetail('${ing.name.replace(/'/g,"\\'")}')">
             ${photoHtml}
             <div class="ing-picker-name">${ing.name}</div>
@@ -775,9 +790,18 @@
             : '<span class="supplier-tag">No suppliers linked</span>';
           
           const photo = ingredientPhotos[ing.name];
-          const photoHtml = photo
-            ? `<div class="ing-item-photo"><img src="${photo}" onerror="this.style.display='none'" /></div>`
-            : `<div class="ing-item-photo">🥫</div>`;
+          const fallbackEmoji = ing.storageType === 'Packaging' ? '📦' : '🥫';
+          
+          let photoHtml = '';
+          if (ing.icon && ing.icon.startsWith('http')) {
+            photoHtml = `<div class="ing-item-photo"><img src="${ing.icon}" onerror="this.style.display='none'" /></div>`;
+          } else if (ing.icon) {
+            photoHtml = `<div class="ing-item-photo" style="font-size:24px;">${ing.icon}</div>`;
+          } else if (photo) {
+            photoHtml = `<div class="ing-item-photo"><img src="${photo}" onerror="this.style.display='none'" /></div>`;
+          } else {
+            photoHtml = `<div class="ing-item-photo">${fallbackEmoji}</div>`;
+          }
             
           const safe = ing.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
           return `<div class="ing-item">
@@ -806,6 +830,7 @@
     document.getElementById('ing-modal-title').textContent = ingName ? 'Edit Ingredient' : 'Add Ingredient';
     document.getElementById('modal-ing-name').value = ing ? ing.name : '';
     document.getElementById('modal-ing-storage').value = ing ? (ing.storageType || 'Ambient') : 'Ambient';
+    document.getElementById('modal-ing-icon').value = ing ? (ing.icon || '') : '';
     document.getElementById('modal-err-ing').style.display = 'none';
     
     renderModalSupplierList(ing ? (ing.suppliers || []) : []);
@@ -839,6 +864,7 @@
     const nameInput = document.getElementById('modal-ing-name');
     const name = nameInput.value.trim();
     const storage = document.getElementById('modal-ing-storage').value;
+    const icon = document.getElementById('modal-ing-icon').value.trim();
     const checks = [...document.querySelectorAll('#modal-supplier-list input[type=checkbox]')];
     const selectedSups = checks.filter(c => c.checked).map(c => c.value);
     
@@ -860,7 +886,8 @@
       name: name, 
       oldName: editingIngredient,
       suppliers: selectedSups.join(', '), 
-      storageType: storage 
+      storageType: storage,
+      icon: icon
     }; 
     
     try {
@@ -876,7 +903,7 @@
           // Update existing item
           const idx = ingredients.findIndex(i => i.name === editingIngredient);
           if (idx >= 0) {
-            ingredients[idx] = { name, suppliers: selectedSups, storageType: storage };
+            ingredients[idx] = { name, suppliers: selectedSups, storageType: storage, icon: icon };
           }
           // Port image over if name changed
           if (name !== editingIngredient && ingredientPhotos[editingIngredient]) {
@@ -888,7 +915,7 @@
           showToast('Ingredient updated ✓');
         } else {
           // Add new item
-          ingredients.push({ name, suppliers: selectedSups, storageType: storage });
+          ingredients.push({ name, suppliers: selectedSups, storageType: storage, icon: icon });
           showToast(name + ' added ✓');
         }
         
@@ -1012,6 +1039,8 @@
 </script>
 </body>
 </html>
+
+
 
 
 
