@@ -145,6 +145,11 @@
     .ing-add-row input { flex: 1; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); outline: none; }
     .ing-add-row input:focus { border-color: var(--accent); }
     
+    .ing-add-row select { padding: 11px 32px 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); outline: none; appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" stroke="%237a776e" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; }
+    .ing-add-row select:focus { border-color: var(--accent); }
+    
+    .storage-group-label { font-size: 12px; font-family: monospace; color: var(--text-muted); margin: 16px 0 8px 4px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; }
+    
     .btn-add-ing { padding: 11px 18px; background: var(--accent); color: var(--accent-fg); border: none; border-radius: var(--radius-sm); font-size: 14px; font-family: 'Lexend', sans-serif; cursor: pointer; white-space: nowrap; }
     .ing-count { font-size: 12px; font-family: monospace; color: var(--text-muted); margin-bottom: 12px; }
     
@@ -254,6 +259,11 @@
       <div class="card-label">Add ingredient</div>
       <div class="ing-add-row">
         <input type="text" id="new-ingredient" placeholder="Ingredient name" onkeydown="if(event.key==='Enter')addIngredient()" />
+        <select id="new-ing-storage">
+          <option value="Ambient">📦 Ambient</option>
+          <option value="Fridge">🧊 Fridge</option>
+          <option value="Freezer">❄️ Freezer</option>
+        </select>
         <button class="btn-add-ing" id="btn-add-ing" onclick="addIngredient()">Add</button>
       </div>
       <div class="err-msg" id="err-ing"></div>
@@ -333,7 +343,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzVTWJzLwotzz7Z2lUY8R9aPD-4jf6uhqiNa1Hhxk41FlWRR6b7uqPEhgnq-hMSEaW5/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQ0W0JV2fmvQGBpwa_wS2ZlhbzqWLxn0yUJ47pIYmOzhpYUgfuKmNrnSTETEkPX2q4/exec';
   const STOCK_CHECK_URL = 'https://script.google.com/macros/s/AKfycbx8donnPrSqM5aI5d8dMSMIBdOWuITzljNxTRj46div5S_VfuvODutQhQGUcHHXN5bJ_A/exec';
   const SK_DELIVERIES = 'delivery_records_v3';
   const SK_SUPPLIERS  = 'delivery_suppliers_v1';
@@ -401,6 +411,8 @@
               i.suppliers = i.suppliers ? i.suppliers.split(',').map(s => s.trim()) : [];
             }
             if (!Array.isArray(i.suppliers)) i.suppliers = [];
+            // Support storage type
+            i.storageType = i.storageType || 'Ambient';
             return i;
           })
           .sort((a,b) => a.name.localeCompare(b.name));
@@ -525,20 +537,32 @@
     const counts = {};
     lines.forEach(l => { counts[l.ingredient] = (counts[l.ingredient]||0) + 1; });
     
-    grid.innerHTML = pool.map(ing => {
-      const count = counts[ing.name] || 0;
-      const addedClass = count > 0 ? ' added' : '';
-      const countBadge = count > 0 ? `<span class="ing-picker-count">×${count} added</span>` : '';
-      const photo = ingredientPhotos[ing.name];
-      const photoHtml = photo
-        ? `<img src="${photo}" onerror="this.style.display='none'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);" />`
-        : `<div style="width:44px;height:44px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🥫</div>`;
-      return `<div class="ing-picker-card${addedClass}" onclick="openIngDetail('${ing.name.replace(/'/g,"\\'")}')">
-        ${photoHtml}
-        <div class="ing-picker-name">${ing.name}</div>
-        ${countBadge}
-      </div>`;
-    }).join('');
+    const groups = ['Fridge', 'Freezer', 'Ambient'];
+    let html = '';
+    
+    groups.forEach(group => {
+      const items = pool.filter(ing => (ing.storageType || 'Ambient') === group);
+      if (items.length > 0) {
+        const icon = group === 'Fridge' ? '🧊' : group === 'Freezer' ? '❄️' : '📦';
+        html += `<div class="storage-group-label">${icon} ${group}</div>`;
+        html += items.map(ing => {
+          const count = counts[ing.name] || 0;
+          const addedClass = count > 0 ? ' added' : '';
+          const countBadge = count > 0 ? `<span class="ing-picker-count">×${count} added</span>` : '';
+          const photo = ingredientPhotos[ing.name];
+          const photoHtml = photo
+            ? `<img src="${photo}" onerror="this.style.display='none'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);" />`
+            : `<div style="width:44px;height:44px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🥫</div>`;
+          return `<div class="ing-picker-card${addedClass}" onclick="openIngDetail('${ing.name.replace(/'/g,"\\'")}')">
+            ${photoHtml}
+            <div class="ing-picker-name">${ing.name}</div>
+            ${countBadge}
+          </div>`;
+        }).join('');
+      }
+    });
+    
+    grid.innerHTML = html;
   }
   
   function openIngDetail(ingName) {
@@ -727,35 +751,49 @@
       return;
     }
     
-    list.innerHTML = ingredients.map(ing => {
-      const sups = ing.suppliers || [];
-      const supHtml = sups.length
-        ? sups.map(s => `<span class="supplier-tag linked">${s}</span>`).join('')
-        : '<span class="supplier-tag">No suppliers linked</span>';
-      
-      const photo = ingredientPhotos[ing.name];
-      const photoHtml = photo
-        ? `<div class="ing-item-photo"><img src="${photo}" onerror="this.style.display='none'" /></div>`
-        : `<div class="ing-item-photo">🥫</div>`;
-        
-      const safe = ing.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      return `<div class="ing-item">
-        ${photoHtml}
-        <div class="ing-item-body">
-          <div class="ing-item-name">${ing.name}</div>
-          <div class="ing-item-suppliers">${supHtml}</div>
-        </div>
-        <div class="ing-item-actions">
-          <button class="btn-sm" onclick="openSupplierModal('${safe}')">Suppliers</button>
-          <button class="btn-sm btn-danger-sm" onclick="deleteIngredient('${safe}')">✕</button>
-        </div>
-      </div>`;
-    }).join('');
+    const groups = ['Fridge', 'Freezer', 'Ambient'];
+    let html = '';
+    
+    groups.forEach(group => {
+      const items = ingredients.filter(ing => (ing.storageType || 'Ambient') === group);
+      if (items.length > 0) {
+        const icon = group === 'Fridge' ? '🧊' : group === 'Freezer' ? '❄️' : '📦';
+        html += `<div class="storage-group-label" style="margin-top: ${html === '' ? '0' : '16px'};">${icon} ${group}</div>`;
+        html += items.map(ing => {
+          const sups = ing.suppliers || [];
+          const supHtml = sups.length
+            ? sups.map(s => `<span class="supplier-tag linked">${s}</span>`).join('')
+            : '<span class="supplier-tag">No suppliers linked</span>';
+          
+          const photo = ingredientPhotos[ing.name];
+          const photoHtml = photo
+            ? `<div class="ing-item-photo"><img src="${photo}" onerror="this.style.display='none'" /></div>`
+            : `<div class="ing-item-photo">🥫</div>`;
+            
+          const safe = ing.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+          return `<div class="ing-item">
+            ${photoHtml}
+            <div class="ing-item-body">
+              <div class="ing-item-name">${ing.name}</div>
+              <div class="ing-item-suppliers">${supHtml}</div>
+            </div>
+            <div class="ing-item-actions">
+              <button class="btn-sm" onclick="openSupplierModal('${safe}')">Suppliers</button>
+              <button class="btn-sm btn-danger-sm" onclick="deleteIngredient('${safe}')">✕</button>
+            </div>
+          </div>`;
+        }).join('');
+      }
+    });
+    
+    list.innerHTML = html;
   }
   
   async function addIngredient() {
     const input = document.getElementById('new-ingredient');
+    const storageInput = document.getElementById('new-ing-storage');
     const val = input.value.trim();
+    const storageVal = storageInput.value;
     const err = document.getElementById('err-ing');
     
     if(!val) { err.style.display = ''; err.textContent = 'Please enter a name.'; return; }
@@ -766,8 +804,8 @@
     btn.textContent = 'Saving…'; 
     btn.disabled = true;
     
-    const newIng = { name: val, suppliers: [] };
-    const payload = { name: val, suppliers: '' }; // Send as string to save neatly in a Sheet cell
+    const newIng = { name: val, suppliers: [], storageType: storageVal };
+    const payload = { name: val, suppliers: '', storageType: storageVal }; 
     try {
       const res = await fetch(APPS_SCRIPT_URL, { 
         method: 'POST', 
@@ -779,6 +817,7 @@
         ingredients.push(newIng);
         ingredients.sort((a,b) => a.name.localeCompare(b.name));
         input.value = ''; 
+        storageInput.value = 'Ambient';
         renderIngredients(); 
         showToast(val + ' added ✓');
       } else {
@@ -850,7 +889,8 @@
     // Pass as a comma-separated string to ensure it formats correctly in Google Sheets
     const payload = {
       name: ingredients[idx].name,
-      suppliers: selected.join(', ')
+      suppliers: selected.join(', '),
+      storageType: ingredients[idx].storageType || 'Ambient'
     };
     
     try {
@@ -954,4 +994,5 @@
 </script>
 </body>
 </html>
+
 
