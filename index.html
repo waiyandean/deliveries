@@ -58,9 +58,9 @@
     
     .field { margin-bottom: 14px; }
     .field:last-child { margin-bottom: 0; }
-    .field label { display: block; font-size: 12px; font-family: monospace; color: var(--text-muted); margin-bottom: 6px; letter-spacing: .03em; }
-    .field input, .field select { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); appearance: none; -webkit-appearance: none; outline: none; }
-    .field input:focus, .field select:focus { border-color: var(--accent); }
+    .field > label { display: block; font-size: 12px; font-family: monospace; color: var(--text-muted); margin-bottom: 6px; letter-spacing: .03em; }
+    .field input:not([type="checkbox"]), .field select { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); appearance: none; -webkit-appearance: none; outline: none; }
+    .field input:not([type="checkbox"]):focus, .field select:focus { border-color: var(--accent); }
     .field input::placeholder { color: var(--text-hint); }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .field select { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" stroke="%237a776e" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
@@ -163,7 +163,7 @@
     /* Add/Edit Modal Supplier Checks */
     .supplier-list-scroll { max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; background: var(--bg); }
     .supplier-check-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; margin-bottom: 6px; }
-    .supplier-check-row input[type=checkbox] { width: 18px; height: 18px; accent-color: #2d6e2d; flex-shrink: 0; }
+    .supplier-check-row input[type=checkbox] { width: 18px; height: 18px; accent-color: #2d6e2d; flex-shrink: 0; appearance: auto; -webkit-appearance: auto; cursor: pointer; margin: 0; padding: 0; border: none; }
     .supplier-check-row span { font-size: 14px; }
     
     /* Modal System */
@@ -1003,4 +1003,5 @@
 </script>
 </body>
 </html>
+
 
