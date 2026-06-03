@@ -289,6 +289,7 @@
         <option value="Ambient">📦 Ambient</option>
         <option value="Fridge">🧊 Fridge</option>
         <option value="Freezer">❄️ Freezer</option>
+        <option value="Packaging">🛍️ Packaging</option>
       </select>
     </div>
     <div class="field">
@@ -311,7 +312,7 @@
     <div style="height:14px;"></div>
     <div class="field-row">
       <div class="field"><label>Batch number</label><input type="text" id="l-batch" placeholder="e.g. BATCH-001" /></div>
-      <div class="field"><label>Use by date</label><input type="date" id="l-ubd" /></div>
+      <div class="field" id="ubd-field-container"><label>Use by date</label><input type="date" id="l-ubd" /></div>
     </div>
     <div class="field">
       <label>Quantity</label>
@@ -345,7 +346,7 @@
 
 <script>
   // UPDATE YOUR APPS SCRIPT URL HERE IF NEEDED
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIRQ4wSz22gWm6iDDeZZOPusBQi_rmaVu28pD_AKGK42QhkhwOAUrfDZZ9XJxNlFOr/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuJAISYE1Hk4e4aqpJyjfIxamAI874RNtis_JQrHSYb59ydEI0bPF9mN6ApRgKtZCP/exec';
   const STOCK_CHECK_URL = 'https://script.google.com/macros/s/AKfycbx8donnPrSqM5aI5d8dMSMIBdOWuITzljNxTRj46div5S_VfuvODutQhQGUcHHXN5bJ_A/exec';
   const SK_DELIVERIES = 'delivery_records_v3';
   const SK_SUPPLIERS  = 'delivery_suppliers_v1';
@@ -537,13 +538,13 @@
     const counts = {};
     lines.forEach(l => { counts[l.ingredient] = (counts[l.ingredient]||0) + 1; });
     
-    const groups = ['Fridge', 'Freezer', 'Ambient'];
+    const groups = ['Fridge', 'Freezer', 'Ambient', 'Packaging'];
     let html = '';
     
     groups.forEach(group => {
       const items = pool.filter(ing => (ing.storageType || 'Ambient') === group);
       if (items.length > 0) {
-        const icon = group === 'Fridge' ? '🧊' : group === 'Freezer' ? '❄️' : '📦';
+        const icon = group === 'Fridge' ? '🧊' : group === 'Freezer' ? '❄️' : group === 'Packaging' ? '🛍️' : '📦';
         html += `<div class="storage-group-label">${icon} ${group}</div>`;
         html += items.map(ing => {
           const count = counts[ing.name] || 0;
@@ -572,6 +573,10 @@
     nameEl.innerHTML = (photo
       ? `<img src="${photo}" onerror="this.style.display='none'" style="width:36px;height:36px;border-radius:6px;object-fit:cover;border:1px solid var(--border);" />`
       : '') + `<span>${ingName}</span>`;
+      
+    const ing = ingredients.find(i => i.name === ingName);
+    const isPkg = ing && ing.storageType === 'Packaging';
+    document.getElementById('ubd-field-container').style.display = isPkg ? 'none' : 'block';
       
     document.getElementById('l-batch').value = '';
     document.getElementById('l-ubd').value = '';
@@ -606,13 +611,13 @@
         <div class="line-n">${i+1}</div>
         <div class="line-body">
           <div class="line-name">${l.ingredient}</div>
-          <div class="line-meta">Batch: ${l.batch} · UBD: ${fmt(l.ubd)} · ${l.qty} ${l.unit}</div>
+          <div class="line-meta">Batch: ${l.batch}${l.isPackaging ? '' : ' · UBD: ' + fmt(l.ubd)} · ${l.qty} ${l.unit}</div>
           <div style="display:flex;gap:5px;margin-top:4px;">
             <span class="check-tag ${l.condition ? 'check-tag-ok' : 'check-tag-fail'}">${l.condition ? '✓ Good condition' : '✗ Condition'}</span>
             <span class="check-tag ${l.storage ? 'check-tag-ok' : 'check-tag-fail'}">${l.storage ? '✓ Correct storage' : '✗ Storage'}</span>
           </div>
         </div>
-        ${expiryBadge(l.ubd)}
+        ${l.isPackaging ? '' : expiryBadge(l.ubd)}
         <button class="btn-remove" onclick="removeLine(${i})">×</button>
       </div>`).join('');
       
@@ -635,10 +640,13 @@
     const condition = document.getElementById('l-condition').checked;
     const storage = document.getElementById('l-storage').checked;
     
+    const ing = ingredients.find(i => i.name === ingredient);
+    const isPkg = ing && ing.storageType === 'Packaging';
+    
     const missing = [];
     if(!ingredient) missing.push('ingredient');
     if(!batch) missing.push('batch number');
-    if(!ubd) missing.push('use by date');
+    if(!isPkg && !ubd) missing.push('use by date');
     if(!qty) missing.push('quantity');
     
     const err = document.getElementById('err2');
@@ -648,7 +656,7 @@
     if(!condition || !storage) { document.getElementById('check-warn').style.display = ''; return; }
     document.getElementById('check-warn').style.display = 'none';
     
-    lines.push({ ingredient, batch, ubd, qty, unit, condition, storage });
+    lines.push({ ingredient, batch, ubd: isPkg ? '' : ubd, qty, unit, condition, storage, isPackaging: isPkg });
     closeIngDetail();
     renderLines();
     renderIngPicker();
@@ -691,6 +699,7 @@
         unit: l.unit, 
         condition: l.condition ? 'Yes' : 'No', 
         storage: l.storage ? 'Yes' : 'No', 
+        isPackaging: !!l.isPackaging,
         savedAt: delivery.savedAt
       }));
       
@@ -730,8 +739,8 @@
         </div>
         ${d.lines.map(l => `
         <div class="line-record">
-          <div class="lr-top"><div class="lr-name">${l.ingredient}</div>${expiryBadge(l.ubd)}</div>
-          <div class="lr-meta"><span>Batch: ${l.batch}</span><span>UBD: ${fmt(l.ubd)}</span><span>Qty: ${l.qty} ${l.unit||''}</span></div>
+          <div class="lr-top"><div class="lr-name">${l.ingredient}</div>${l.isPackaging ? '' : expiryBadge(l.ubd)}</div>
+          <div class="lr-meta"><span>Batch: ${l.batch}</span>${l.isPackaging ? '' : '<span>UBD: ' + fmt(l.ubd) + '</span>'}<span>Qty: ${l.qty} ${l.unit||''}</span></div>
           <div class="lr-checks">
             <span class="check-tag ${l.condition ? 'check-tag-ok' : 'check-tag-fail'}">${l.condition ? '✓ Good condition' : '✗ Condition issue'}</span>
             <span class="check-tag ${l.storage ? 'check-tag-ok' : 'check-tag-fail'}">${l.storage ? '✓ Correct storage' : '✗ Storage issue'}</span>
@@ -751,13 +760,13 @@
       return;
     }
     
-    const groups = ['Fridge', 'Freezer', 'Ambient'];
+    const groups = ['Fridge', 'Freezer', 'Ambient', 'Packaging'];
     let html = '';
     
     groups.forEach(group => {
       const items = ingredients.filter(ing => (ing.storageType || 'Ambient') === group);
       if (items.length > 0) {
-        const icon = group === 'Fridge' ? '🧊' : group === 'Freezer' ? '❄️' : '📦';
+        const icon = group === 'Fridge' ? '🧊' : group === 'Freezer' ? '❄️' : group === 'Packaging' ? '🛍️' : '📦';
         html += `<div class="storage-group-label" style="margin-top: ${html === '' ? '0' : '16px'};">${icon} ${group}</div>`;
         html += items.map(ing => {
           const sups = ing.suppliers || [];
@@ -1003,5 +1012,6 @@
 </script>
 </body>
 </html>
+
 
 
