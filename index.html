@@ -1,182 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Delivery Log</title>
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Delivery Log" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#1a1916" />
-  
-  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
-  
-  <style>
-    :root {
-      --bg: #f5f4f0; --surface: #fff; --border: #e0ddd6; --border-strong: #c8c4bb;
-      --text: #1a1916; --text-muted: #7a776e; --text-hint: #b0ada5;
-      --accent: #1a1916; --accent-fg: #fff;
-      --success-bg: #edf7ed; --success-text: #2d6e2d;
-      --warn-bg: #fdf6e3; --warn-text: #8a6500;
-      --danger-bg: #fdecea; --danger-text: #c0392b;
-      --radius: 10px; --radius-sm: 6px;
-    }
-    
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Lexend', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-    
-    .app-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
-    .app-title { font-size: 17px; font-weight: normal; }
-    .app-title span { color: var(--text-muted); }
-    .header-badge { font-size: 12px; font-family: monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; color: var(--text-muted); }
-    
-    .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
-    .tab { flex: 1; min-width: 60px; padding: 13px 6px; font-size: 13px; font-family: 'Lexend', sans-serif; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
-    .tab.active { color: var(--text); border-bottom-color: var(--text); }
-    
-    .content { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
-    
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
-    .card-label { font-size: 11px; font-family: monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
-    .card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    
-    .step-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-    .step-pill { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
-    .step-pill.active { color: var(--text); font-weight: bold; }
-    .step-pill.done { color: var(--success-text); }
-    .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border-strong); display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: monospace; }
-    .step-pill.active .step-num { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
-    .step-pill.done .step-num { background: var(--success-bg); border-color: var(--success-text); color: var(--success-text); font-size: 13px; }
-    .step-line { flex: 1; height: 1px; background: var(--border); }
-    
-    .field { margin-bottom: 14px; }
-    .field:last-child { margin-bottom: 0; }
-    .field > label { display: block; font-size: 12px; font-family: monospace; color: var(--text-muted); margin-bottom: 6px; letter-spacing: .03em; }
-    .field input:not([type="checkbox"]), .field select { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); appearance: none; -webkit-appearance: none; outline: none; }
-    .field input:not([type="checkbox"]):focus, .field select:focus { border-color: var(--accent); }
-    .field input::placeholder { color: var(--text-hint); }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .field select { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" stroke="%237a776e" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-    
-    .btn { width: 100%; padding: 13px; border-radius: var(--radius-sm); font-size: 15px; font-family: 'Lexend', sans-serif; cursor: pointer; border: none; }
-    .btn-primary { background: var(--accent); color: var(--accent-fg); }
-    .btn-primary:active { opacity: .85; }
-    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-strong); margin-top: 10px; }
-    .btn-sm { padding: 6px 12px; font-size: 13px; width: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-family: 'Lexend', sans-serif; }
-    .btn-sm:active { background: var(--bg); }
-    .btn-danger-sm { color: var(--danger-text); border-color: transparent; }
-    
-    .err-msg { display: none; color: var(--danger-text); background: var(--danger-bg); border: 1px solid #f5b8b3; border-radius: var(--radius-sm); padding: 9px 12px; font-size: 13px; margin-bottom: 12px; }
-    
-    /* Delivery banner */
-    .delivery-banner { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-start; }
-    .banner-info { font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
-    .banner-info .row { display: flex; gap: 8px; }
-    .banner-key { color: var(--text-muted); font-family: monospace; font-size: 11px; min-width: 52px; }
-    .banner-val { font-size: 13px; }
-    .btn-edit { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; font-family: 'Lexend', sans-serif; cursor: pointer; color: var(--text-muted); }
-    
-    /* Ingredient picker & Groups */
-    .storage-group-label { font-size: 12px; font-family: monospace; color: var(--text-muted); margin: 16px 0 8px 4px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; }
-    .ing-picker-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 8px; }
-    .ing-picker-card:active { background: var(--bg); border-color: var(--accent); }
-    .ing-picker-card.added { border-color: #b2d9b2; background: var(--success-bg); }
-    .ing-picker-name { font-size: 14px; font-weight: 500; flex: 1; }
-    .ing-picker-count { font-size: 11px; font-family: monospace; color: var(--success-text); background: #fff; border: 1px solid #b2d9b2; border-radius: 20px; padding: 2px 8px; flex-shrink: 0; }
-    .ing-picker-empty { text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 14px; }
-    
-    /* Lines */
-    .lines-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-    .line-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: flex-start; gap: 10px; }
-    .line-n { font-size: 11px; font-family: monospace; color: var(--text-hint); padding-top: 2px; min-width: 16px; }
-    .line-body { flex: 1; min-width: 0; }
-    .line-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
-    .line-meta { font-size: 12px; color: var(--text-muted); font-family: monospace; }
-    .btn-remove { background: transparent; border: none; font-size: 20px; color: var(--text-hint); cursor: pointer; padding: 0 4px; line-height: 1; }
-    .btn-remove:active { color: var(--danger-text); }
-    
-    .check-tag { font-size: 11px; font-family: monospace; padding: 2px 7px; border-radius: 20px; border: 1px solid var(--border); }
-    .check-tag-ok { background: var(--success-bg); color: var(--success-text); border-color: #b2d9b2; }
-    .check-tag-fail { background: var(--danger-bg); color: var(--danger-text); border-color: #f5b8b3; }
-    
-    .checks-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .check-box { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 13px; cursor: pointer; flex: 1; }
-    .check-box.checked { background: var(--success-bg); border-color: #b2d9b2; }
-    .check-box input { width: 16px; height: 16px; accent-color: var(--success-text); }
-    .check-box span { font-size: 13px; }
-    .check-warn { font-size: 12px; color: var(--warn-text); display: none; margin-top: 8px; }
-    
-    .save-row { display: flex; flex-direction: column; gap: 8px; }
-    .line-count { font-size: 12px; font-family: monospace; color: var(--text-muted); text-align: center; margin-top: 8px; }
-    
-    /* Records */
-    .search-box { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); outline: none; margin-bottom: 14px; }
-    .delivery-group { margin-bottom: 20px; }
-    .group-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-    .group-meta strong { font-size: 15px; }
-    .inv { font-size: 12px; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
-    .group-count { font-size: 12px; font-family: monospace; color: var(--text-muted); }
-    .line-record { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; margin-bottom: 6px; }
-    .lr-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-    .lr-name { font-size: 14px; font-weight: 500; }
-    .lr-meta { font-size: 12px; color: var(--text-muted); font-family: monospace; display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
-    .lr-checks { display: flex; gap: 5px; flex-wrap: wrap; }
-    
-    .badge { font-size: 11px; font-family: monospace; padding: 2px 7px; border-radius: 20px; border: 1px solid; }
-    .badge-ok { background: var(--success-bg); color: var(--success-text); border-color: #b2d9b2; }
-    .badge-warn { background: var(--warn-bg); color: var(--warn-text); border-color: #f0d88a; }
-    .badge-exp { background: var(--danger-bg); color: var(--danger-text); border-color: #f5b8b3; }
-    
-    .empty { text-align: center; padding: 48px 16px; color: var(--text-muted); }
-    .empty .icon { font-size: 32px; margin-bottom: 10px; }
-    
-    /* Ingredients & Suppliers tab */
-    .ing-add-row { display: flex; gap: 8px; margin-bottom: 16px; }
-    .ing-add-row input { flex: 1; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); outline: none; }
-    .ing-add-row input:focus { border-color: var(--accent); }
-    .btn-add-ing { padding: 11px 18px; background: var(--accent); color: var(--accent-fg); border: none; border-radius: var(--radius-sm); font-size: 14px; font-family: 'Lexend', sans-serif; cursor: pointer; white-space: nowrap; }
-    
-    .ing-count { font-size: 12px; font-family: monospace; color: var(--text-muted); margin-bottom: 12px; }
-    
-    .ing-item { display: flex; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; margin-bottom: 6px; gap: 10px; }
-    .ing-item-photo { width: 40px; height: 40px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; overflow: hidden; }
-    .ing-item-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; }
-    .ing-item-body { flex: 1; min-width: 0; }
-    .ing-item-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
-    .ing-item-suppliers { display: flex; flex-wrap: wrap; gap: 3px; }
-    .ing-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
-    
-    .supplier-tag { display: inline-block; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; font-size: 11px; font-family: monospace; color: var(--text-muted); }
-    .supplier-tag.linked { background: var(--success-bg); border-color: #b2d9b2; color: var(--success-text); }
-    .ing-empty { text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 13px; font-family: monospace; }
-    
-    .supplier-item { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 6px; gap: 10px; }
-    .supplier-item-name { flex: 1; font-size: 14px; }
-    
-    /* Add/Edit Modal Supplier Checks */
-    .supplier-list-scroll { max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; background: var(--bg); }
-    .supplier-check-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; margin-bottom: 6px; }
-    .supplier-check-row input[type=checkbox] { width: 18px; height: 18px; accent-color: #2d6e2d; flex-shrink: 0; appearance: auto; -webkit-appearance: auto; cursor: pointer; margin: 0; padding: 0; border: none; }
-    .supplier-check-row span { font-size: 14px; }
-    
-    /* Modal System */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 50; display: none; align-items: flex-end; }
-    .modal-overlay.open { display: flex; }
-    .modal-box { background: var(--surface); border-radius: var(--radius) var(--radius) 0 0; padding: 20px; width: 100%; max-height: 85vh; overflow-y: auto; }
-    .modal-title { font-size: 16px; font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
-    .modal-close { font-size: 22px; color: var(--text-muted); background: none; border: none; cursor: pointer; line-height: 1; }
-    
-    /* Toast */
-    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--accent-fg); padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 99; white-space: nowrap; }
-    .toast.show { opacity: 1; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Delivery Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --border: #e0ddd6;
+    --border-strong: #c8c4bb;
+    --text: #1a1916;
+    --text-muted: #7a776e;
+    --text-hint: #b0ada5;
+    --accent: #1a1916;
+    --accent-fg: #ffffff;
+    --success-bg: #edf7ed;
+    --success-text: #2d6e2d;
+    --warn-bg: #fdf6e3;
+    --warn-text: #8a6500;
+    --danger-bg: #fdecea;
+    --danger-text: #c0392b;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Lexend', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; }
+
+  .app-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .app-title { font-size: 17px; font-weight: normal; letter-spacing: -0.01em; }
+  .app-title span { color: var(--text-muted); }
+  .header-badge { font-size: 12px; font-family: 'Courier New', monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; color: var(--text-muted); }
+
+  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tab { flex: 1; padding: 13px 6px; font-size: 13px; font-family: 'Lexend', sans-serif; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab.active { color: var(--text); border-bottom-color: var(--text); }
+
+  .content { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
+  .card-label { font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+  .card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .step-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .step-pill { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
+  .step-pill.active { color: var(--text); font-weight: bold; }
+  .step-pill.done { color: var(--success-text); }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border-strong); display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: 'Courier New', monospace; }
+  .step-pill.active .step-num { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .step-pill.done .step-num { background: var(--success-bg); border-color: var(--success-text); color: var(--success-text); font-size: 13px; }
+  .step-line { flex: 1; height: 1px; background: var(--border); }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12px; font-family: 'Courier New', monospace; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.03em; }
+  .field input { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); appearance: none; -webkit-appearance: none; outline: none; transition: border-color 0.15s; }
+  .field input:focus { border-color: var(--accent); }
+  .field input::placeholder { color: var(--text-hint); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Autocomplete */
+  .autocomplete-wrap { position: relative; }
+  .autocomplete-input { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); appearance: none; -webkit-appearance: none; outline: none; transition: border-color 0.15s; }
+  .autocomplete-input:focus { border-color: var(--accent); }
+  .autocomplete-input::placeholder { color: var(--text-hint); }
+  .autocomplete-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); box-shadow: 0 4px 16px rgba(0,0,0,0.08); z-index: 100; max-height: 220px; overflow-y: auto; display: none; }
+  .autocomplete-dropdown.open { display: block; }
+  .ac-item { padding: 11px 14px; font-size: 15px; font-family: 'Lexend', sans-serif; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:active, .ac-item.highlighted { background: var(--bg); }
+  .ac-item mark { background: none; color: var(--accent); font-weight: bold; }
+  .ac-empty { padding: 11px 14px; font-size: 13px; color: var(--text-muted); font-family: 'Courier New', monospace; }
+
+  .btn { width: 100%; padding: 13px; border-radius: var(--radius-sm); font-size: 15px; font-family: 'Lexend', sans-serif; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: var(--accent); color: var(--accent-fg); }
+  .btn-primary:active { opacity: 0.85; transform: scale(0.99); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-strong); margin-top: 10px; }
+  .btn-secondary:active { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .delivery-banner { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .banner-info { font-size: 13px; line-height: 1.8; }
+  .banner-info .row { display: flex; gap: 6px; }
+  .banner-key { font-family: 'Courier New', monospace; font-size: 11px; color: var(--text-muted); min-width: 54px; padding-top: 2px; }
+  .banner-val { font-weight: bold; font-size: 13px; }
+  .btn-edit { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 12px; font-family: 'Lexend', sans-serif; cursor: pointer; color: var(--text-muted); flex-shrink: 0; }
+
+  .lines-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .line-item { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; display: flex; align-items: center; gap: 10px; }
+  .line-n { font-family: 'Courier New', monospace; font-size: 11px; color: var(--text-hint); min-width: 18px; }
+  .line-body { flex: 1; min-width: 0; }
+  .line-name { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .line-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: 'Courier New', monospace; }
+  .badge { font-size: 10px; font-family: 'Courier New', monospace; padding: 2px 7px; border-radius: 20px; border: 1px solid; flex-shrink: 0; }
+  .badge-ok { background: var(--success-bg); color: var(--success-text); border-color: #b2d9b2; }
+  .badge-warn { background: var(--warn-bg); color: var(--warn-text); border-color: #f0d88a; }
+  .badge-exp { background: var(--danger-bg); color: var(--danger-text); border-color: #f5b8b3; }
+  .btn-remove { background: transparent; border: none; font-size: 18px; color: var(--text-hint); cursor: pointer; padding: 4px; line-height: 1; flex-shrink: 0; }
+
+  .save-row { display: flex; gap: 8px; flex-direction: column; }
+  .line-count { text-align: center; font-size: 12px; font-family: 'Courier New', monospace; color: var(--text-muted); margin-top: 6px; }
+
+  .delivery-group { margin-bottom: 20px; }
+  .group-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; flex-wrap: wrap; }
+  .group-meta { font-size: 13px; line-height: 1.6; }
+  .group-meta .inv { font-family: 'Courier New', monospace; font-size: 12px; color: var(--text-muted); }
+  .group-count { font-family: 'Courier New', monospace; font-size: 11px; color: var(--text-hint); }
+  .line-record { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; margin-bottom: 6px; }
+  .line-record:last-child { margin-bottom: 0; }
+  .lr-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .lr-name { font-size: 14px; font-weight: bold; }
+  .lr-meta { font-size: 12px; color: var(--text-muted); font-family: 'Courier New', monospace; display: flex; gap: 12px; flex-wrap: wrap; }
+  .search-box { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); outline: none; margin-bottom: 16px; }
+  .search-box:focus { border-color: var(--accent); }
+  .empty { text-align: center; padding: 48px 20px; color: var(--text-muted); font-size: 14px; }
+  .empty .icon { font-size: 32px; margin-bottom: 10px; }
+
+  .err-msg { background: var(--danger-bg); color: var(--danger-text); border: 1px solid #f5b8b3; border-radius: var(--radius-sm); padding: 10px 13px; font-size: 13px; margin-bottom: 12px; display: none; }
+
+  /* Ingredient manager */
+  .ing-add-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .ing-add-row input { flex: 1; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'Lexend', sans-serif; background: var(--surface); color: var(--text); outline: none; }
+  .ing-add-row input:focus { border-color: var(--accent); }
+  .btn-add-ing { padding: 11px 18px; background: var(--accent); color: var(--accent-fg); border: none; border-radius: var(--radius-sm); font-size: 14px; font-family: 'Lexend', sans-serif; cursor: pointer; white-space: nowrap; }
+  .ing-list { display: flex; flex-direction: column; gap: 6px; }
+  .ing-item { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; font-size: 14px; }
+  .ing-item span { flex: 1; }
+  .btn-del-ing { background: transparent; border: none; font-size: 18px; color: var(--text-hint); cursor: pointer; padding: 2px 6px; line-height: 1; }
+  .btn-del-ing:active { color: var(--danger-text); }
+  .ing-empty { text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 13px; font-family: 'Courier New', monospace; }
+  .ing-count { font-size: 12px; font-family: 'Courier New', monospace; color: var(--text-muted); margin-bottom: 12px; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* Unsynced badge & sync button */
+  .badge-unsynced { background: var(--warn-bg); color: var(--warn-text); border-color: #f0d88a; }
+  .btn-sync-delivery { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; font-size:12px; font-family:'Lexend',sans-serif; background:var(--warn-bg); color:var(--warn-text); border:1px solid #f0d88a; border-radius:20px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+  .btn-sync-delivery:active { opacity:0.75; }
+  .btn-sync-delivery:disabled { opacity:0.5; cursor:not-allowed; }
+  .sync-all-bar { background:var(--warn-bg); border:1px solid #f0d88a; border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .sync-all-bar span { font-size:13px; color:var(--warn-text); }
+  .btn-sync-all { padding:7px 14px; font-size:13px; font-family:'Lexend',sans-serif; background:var(--accent); color:var(--accent-fg); border:none; border-radius:var(--radius-sm); cursor:pointer; white-space:nowrap; }
+  .btn-sync-all:disabled { opacity:0.5; cursor:not-allowed; }
+</style>
 </head>
 <body>
 
@@ -189,10 +158,10 @@
   <button class="tab active" onclick="showTab('entry')" id="tab-entry">New Delivery</button>
   <button class="tab" onclick="showTab('records')" id="tab-records">Records (<span id="rec-count">0</span>)</button>
   <button class="tab" onclick="showTab('ingredients')" id="tab-ingredients">Ingredients</button>
-  <button class="tab" onclick="showTab('suppliers')" id="tab-suppliers">Suppliers</button>
 </div>
 
 <div class="content">
+
   <!-- ── ENTRY PANEL ── -->
   <div id="panel-entry">
     <div class="step-row">
@@ -207,12 +176,7 @@
         <div class="card-label">Delivery details</div>
         <div class="field"><label>Delivery date</label><input type="date" id="h-date" /></div>
         <div class="field"><label>Invoice number</label><input type="text" id="h-invoice" placeholder="e.g. 009111111" /></div>
-        <div class="field">
-          <label>Supplier</label>
-          <select id="h-supplier">
-            <option value="">Select supplier…</option>
-          </select>
-        </div>
+        <div class="field"><label>Supplier name</label><input type="text" id="h-supplier" placeholder="e.g. Lynas" /></div>
         <div class="field"><label>Staff name</label><input type="text" id="h-staff" placeholder="Full name" /></div>
       </div>
       <div class="err-msg" id="err1"></div>
@@ -225,13 +189,39 @@
         <div class="banner-info" id="banner-text"></div>
         <button class="btn-edit" onclick="goStep1()">Edit</button>
       </div>
-      
+
       <div class="lines-list" id="lines-list"></div>
-      
-      <div class="card-label" id="ing-picker-label" style="margin-bottom:8px;">Tap an ingredient to add it</div>
-      <div id="ing-picker-grid"></div>
-      
-      <div class="save-row" style="margin-top:12px;">
+
+      <div class="card">
+        <div class="card-label" id="line-form-label">Add ingredient line</div>
+        <div class="field">
+          <label>Ingredient name</label>
+          <div class="autocomplete-wrap">
+            <input type="text" class="autocomplete-input" id="l-ingredient" placeholder="Type to search ingredients…" autocomplete="off" oninput="onIngredientInput()" onkeydown="onIngredientKeydown(event)" onfocus="onIngredientInput()" />
+            <div class="autocomplete-dropdown" id="ac-dropdown"></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Batch number</label><input type="text" id="l-batch" placeholder="e.g. BATCH-001" /></div>
+          <div class="field"><label>Use by date</label><input type="date" id="l-ubd" /></div>
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="l-qty" placeholder="e.g. 5" style="flex:1; padding:11px 13px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:16px; font-family:'Georgia',serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none;" />
+            <select id="l-unit" style="width:110px; padding:11px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:15px; font-family:'Georgia',serif; background:var(--surface); color:var(--text); appearance:none; -webkit-appearance:none; outline:none; background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path d=%22M1 1l5 5 5-5%22 stroke=%22%237a776e%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>'); background-repeat:no-repeat; background-position:right 10px center; cursor:pointer;">
+              <option value="Cases">Cases</option>
+              <option value="Units">Units</option>
+              <option value="kg">kg</option>
+              <option value="Litres">Litres</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="err-msg" id="err2"></div>
+      <div class="save-row">
+        <button class="btn btn-primary" onclick="addLine()">+ Add ingredient</button>
         <button class="btn btn-secondary" id="save-btn" onclick="saveDelivery()" style="display:none;">Save delivery</button>
       </div>
       <div class="line-count" id="line-count-label"></div>
@@ -241,806 +231,374 @@
   <!-- ── RECORDS PANEL ── -->
   <div id="panel-records" style="display:none;">
     <input type="search" class="search-box" id="search-q" placeholder="Search ingredient, invoice, staff…" oninput="renderRecords()" />
+    <div class="sync-all-bar" id="sync-all-bar" style="display:none;">
+      <span id="sync-all-count"></span>
+      <button class="btn-sync-all" id="btn-sync-all" onclick="syncAll()">Sync all</button>
+    </div>
     <div id="records-container"></div>
   </div>
 
   <!-- ── INGREDIENTS PANEL ── -->
   <div id="panel-ingredients" style="display:none;">
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <div class="card-label" style="margin-bottom:0;">Ingredients List</div>
-        <button class="btn-sm" style="background:var(--accent); color:var(--accent-fg); border:none;" onclick="openIngModal()">+ Add New</button>
-      </div>
-      <div class="ing-count" id="ing-count"></div>
-      <div id="ing-list"></div>
-    </div>
-  </div>
-
-  <!-- ── SUPPLIERS PANEL ── -->
-  <div id="panel-suppliers" style="display:none;">
-    <div class="card">
-      <div class="card-label">Add supplier</div>
+      <div class="card-label">Add ingredient</div>
       <div class="ing-add-row">
-        <input type="text" id="new-supplier" placeholder="Supplier name" onkeydown="if(event.key==='Enter')addSupplier()" />
-        <button class="btn-add-ing" id="btn-add-sup" onclick="addSupplier()">Add</button>
+        <input type="text" id="new-ingredient" placeholder="Ingredient name" onkeydown="if(event.key==='Enter')addIngredient()" />
+        <button class="btn-add-ing" onclick="addIngredient()">Add</button>
       </div>
-      <div class="err-msg" id="err-sup"></div>
-      <div class="ing-count" id="sup-count"></div>
-      <div id="supplier-list"></div>
+      <div class="err-msg" id="err-ing"></div>
+      <div class="ing-count" id="ing-count"></div>
+      <div class="ing-list" id="ing-list"></div>
     </div>
   </div>
-</div>
 
-<!-- Add/Edit Ingredient Modal -->
-<div class="modal-overlay" id="ing-modal-overlay" onclick="closeIngModal()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="modal-title">
-      <span id="ing-modal-title">Add Ingredient</span>
-      <button class="modal-close" onclick="closeIngModal()">×</button>
-    </div>
-    
-    <div class="field" style="margin-top: 14px;">
-      <label>Name</label>
-      <input type="text" id="modal-ing-name" placeholder="e.g. Tomato Paste" />
-    </div>
-    <div class="field">
-      <label>Storage Area</label>
-      <select id="modal-ing-storage">
-        <option value="Ambient">📦 Ambient</option>
-        <option value="Fridge">🧊 Fridge</option>
-        <option value="Freezer">❄️ Freezer</option>
-        <option value="Packaging">🛍️ Packaging</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Custom Emoji or Image URL (Optional)</label>
-      <input type="text" id="modal-ing-icon" placeholder="e.g. 🥡, 🥤, or http://..." />
-    </div>
-    <div class="field">
-      <label>Linked Suppliers (Optional)</label>
-      <div id="modal-supplier-list" class="supplier-list-scroll"></div>
-    </div>
-    
-    <div class="err-msg" id="modal-err-ing" style="margin-top: 8px;"></div>
-    <button onclick="saveModalIngredient()" class="btn btn-primary" id="btn-save-ing" style="margin-top: 14px;">Save Ingredient</button>
-  </div>
 </div>
-
-<!-- Ingredient detail sheet (for deliveries) -->
-<div class="modal-overlay" id="ing-detail-overlay" onclick="closeIngDetail()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="modal-title">
-      <div id="detail-ing-name" style="display:flex;align-items:center;gap:10px;"></div>
-      <button class="modal-close" onclick="closeIngDetail()">×</button>
-    </div>
-    <div style="height:14px;"></div>
-    <div class="field-row">
-      <div class="field"><label>Batch number</label><input type="text" id="l-batch" placeholder="e.g. BATCH-001" /></div>
-      <div class="field" id="ubd-field-container"><label>Use by date</label><input type="date" id="l-ubd" /></div>
-    </div>
-    <div class="field">
-      <label>Quantity</label>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="l-qty" placeholder="e.g. 5" style="flex:1;padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-family:'Lexend',sans-serif;background:var(--surface);color:var(--text);appearance:none;outline:none;" />
-        <select id="l-unit" style="width:110px;padding:11px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:'Lexend',sans-serif;background:var(--surface);color:var(--text);appearance:none;outline:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path d=%22M1 1l5 5 5-5%22 stroke=%22%237a776e%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>');background-repeat:no-repeat;background-position:right 10px center;">
-          <option value="Cases">Cases</option>
-          <option value="Units">Units</option>
-          <option value="kg">kg</option>
-          <option value="Litres">Litres</option>
-        </select>
-      </div>
-    </div>
-    <div class="checks-row">
-      <label class="check-box" id="cb-condition-wrap">
-        <input type="checkbox" id="l-condition" onchange="toggleCheck('cb-condition-wrap',this)" />
-        <span>Good condition</span>
-      </label>
-      <label class="check-box" id="cb-storage-wrap">
-        <input type="checkbox" id="l-storage" onchange="toggleCheck('cb-storage-wrap',this)" />
-        <span>Correct storage</span>
-      </label>
-    </div>
-    <div class="check-warn" id="check-warn">⚠ Please confirm both checks before adding.</div>
-    <div class="err-msg" id="err2" style="margin-top:8px;"></div>
-    <button class="btn btn-primary" style="margin-top:14px;" onclick="addLine()">+ Add this ingredient</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-  // UPDATE YOUR APPS SCRIPT URL HERE IF NEEDED
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwf9KST0zXqK-b5i7sLjDasW3Silicg3ehJT82F9jT493k8Igft5MwlBBcwREGuF4xh/exec';
-  const STOCK_CHECK_URL = 'https://script.google.com/macros/s/AKfycbx8donnPrSqM5aI5d8dMSMIBdOWuITzljNxTRj46div5S_VfuvODutQhQGUcHHXN5bJ_A/exec';
-  const SK_DELIVERIES = 'delivery_records_v3';
-  const SK_SUPPLIERS  = 'delivery_suppliers_v1';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeaZsKX7xQ_Nad2bN5T_XHD848eE_uAvIeC2vG0ien1WsIIKeWPZb9V84KPLgooFDz/exec';
+const SK_DELIVERIES = 'delivery_records_v3';
+const SK_INGREDIENTS = 'delivery_ingredients_v1';
 
-  // State Management
-  let deliveries = [], ingredients = [], allSuppliers = [], ingredientPhotos = {};
-  let header = null, lines = [], selectedIngredient = null, editingIngredient = null;
+let deliveries = [];
+let ingredients = [];
+let header = null;
+let lines = [];
+let acHighlight = -1;
 
-  // ── Boot ──
-  async function load() {
-    try { const d = localStorage.getItem(SK_DELIVERIES); if(d) deliveries = JSON.parse(d); } catch(e){}
-    try { const s = localStorage.getItem(SK_SUPPLIERS);  if(s) allSuppliers = JSON.parse(s); } catch(e){}
-    updateCount();
-    populateSupplierDropdown();
-    await Promise.all([fetchIngredients(), fetchIngredientPhotos(), fetchSuppliers()]);
-    renderSuppliersList();
-    populateSupplierDropdown();
-  }
+function load() {
+  try { const d = localStorage.getItem(SK_DELIVERIES); if (d) deliveries = JSON.parse(d); } catch(e) {}
+  try { const d = localStorage.getItem(SK_INGREDIENTS); if (d) ingredients = JSON.parse(d); } catch(e) {}
+  updateCount();
+}
+function persist() {
+  try { localStorage.setItem(SK_DELIVERIES, JSON.stringify(deliveries)); } catch(e) {}
+}
+function persistIngredients() {
+  try { localStorage.setItem(SK_INGREDIENTS, JSON.stringify(ingredients)); } catch(e) {}
+}
+function updateCount() {
+  const t = deliveries.reduce((s,d) => s+d.lines.length, 0);
+  document.getElementById('rec-count').textContent = t;
+}
+function updateSyncStatus(state) {
+  const el = document.getElementById('sync-status');
+  if (state==='syncing') { el.textContent='◌ syncing'; el.style.color='#8a6500'; }
+  else if (state==='synced') { el.textContent='✓ synced'; el.style.color='#2d6e2d'; }
+  else if (state==='error') { el.textContent='✗ sync failed'; el.style.color='#c0392b'; }
+  else { el.textContent='● sheets'; el.style.color='#2d6e2d'; }
+}
+function fmt(d) { if(!d) return '—'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+function expiryStatus(ubd) {
+  if (!ubd) return 'ok';
+  const diff = Math.floor((new Date(ubd)-new Date().setHours(0,0,0,0))/86400000);
+  return diff<0?'exp':diff<=3?'warn':'ok';
+}
+function expiryBadge(ubd) {
+  const s=expiryStatus(ubd);
+  if(s==='exp') return '<span class="badge badge-exp">EXPIRED</span>';
+  if(s==='warn') return '<span class="badge badge-warn">EXPIRING</span>';
+  return '<span class="badge badge-ok">VALID</span>';
+}
 
-  function persist() { try { localStorage.setItem(SK_DELIVERIES, JSON.stringify(deliveries)); } catch(e){} }
-  function persistSuppliers() { localStorage.setItem(SK_SUPPLIERS, JSON.stringify(allSuppliers)); }
-  function showToast(msg) { 
-    const t = document.getElementById('toast'); 
-    t.textContent = msg; 
-    t.classList.add('show'); 
-    setTimeout(() => t.classList.remove('show'), 2500); 
-  }
-  function updateCount() { document.getElementById('rec-count').textContent = deliveries.reduce((s,d) => s + d.lines.length, 0); }
-  function fmt(d) { if(!d) return '—'; const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; }
-  
-  function expiryStatus(ubd) { 
-    if(!ubd) return 'ok'; 
-    const diff = Math.floor((new Date(ubd) - new Date().setHours(0,0,0,0)) / 86400000); 
-    return diff < 0 ? 'exp' : diff <= 3 ? 'warn' : 'ok'; 
-  }
-  
-  function expiryBadge(ubd) { 
-    const s = expiryStatus(ubd); 
-    if(s === 'exp') return '<span class="badge badge-exp">EXPIRED</span>'; 
-    if(s === 'warn') return '<span class="badge badge-warn">EXPIRING</span>'; 
-    return '<span class="badge badge-ok">VALID</span>'; 
-  }
-  
-  function updateSyncStatus(state) {
-    const el = document.getElementById('sync-status');
-    if(state === 'syncing') { el.textContent = '◌ syncing'; el.style.color = '#8a6500'; }
-    else if(state === 'synced') { el.textContent = '✓ synced'; el.style.color = '#2d6e2d'; }
-    else if(state === 'error') { el.textContent = '✗ error'; el.style.color = '#c0392b'; }
-    else { el.textContent = '● sheets'; el.style.color = '#2d6e2d'; }
-  }
+function showTab(t) {
+  ['entry','records','ingredients'].forEach(p => {
+    document.getElementById('panel-'+p).style.display = p===t?'':'none';
+    document.getElementById('tab-'+p).classList.toggle('active', p===t);
+  });
+  closeDropdown();
+  if(t==='records') renderRecords();
+  if(t==='ingredients') renderIngredients();
+}
 
-  // ── Fetch ──
-  async function fetchIngredients() {
-    document.getElementById('tab-ingredients').textContent = 'Ingredients…';
-    try {
-      const res = await fetch(APPS_SCRIPT_URL + '?action=getIngredients');
-      const json = await res.json();
-      if (json.ingredients) {
-        ingredients = json.ingredients
-          .filter(i => i)
-          .map(i => typeof i === 'string' ? { name: i, suppliers: [] } : i)
-          .map(i => {
-            // Parse comma-separated strings back to arrays
-            if (typeof i.suppliers === 'string') {
-              i.suppliers = i.suppliers ? i.suppliers.split(',').map(s => s.trim()) : [];
-            }
-            if (!Array.isArray(i.suppliers)) i.suppliers = [];
-            i.storageType = i.storageType || 'Ambient'; // Default to ambient if missing
-            i.icon = i.icon || ''; // Custom emoji or image URL
-            return i;
-          })
-          .sort((a,b) => a.name.localeCompare(b.name));
-        
-        // Merge supplier names from ingredients to master list (fallback)
-        ingredients.forEach(i => (i.suppliers||[]).forEach(s => { if(s && !allSuppliers.includes(s)) allSuppliers.push(s); }));
-        allSuppliers.sort();
-        persistSuppliers();
-      }
-    } catch(e) {}
-    document.getElementById('tab-ingredients').textContent = 'Ingredients';
-    renderIngredients();
-    populateSupplierDropdown();
-    renderSuppliersList();
-  }
+function setStep(n) {
+  document.getElementById('sp1').className='step-pill'+(n===1?' active':' done');
+  document.getElementById('sn1').textContent = n===1?'1':'✓';
+  document.getElementById('sp2').className='step-pill'+(n===2?' active':'');
+  document.getElementById('sn2').textContent='2';
+}
+function goStep1() {
+  closeDropdown();
+  document.getElementById('step1').style.display='';
+  document.getElementById('step2').style.display='none';
+  setStep(1);
+}
+function goStep2() {
+  const date=document.getElementById('h-date').value;
+  const invoice=document.getElementById('h-invoice').value.trim();
+  const supplier=document.getElementById('h-supplier').value.trim();
+  const staff=document.getElementById('h-staff').value.trim();
+  const missing=[];
+  if(!date) missing.push('delivery date');
+  if(!invoice) missing.push('invoice number');
+  if(!supplier) missing.push('supplier name');
+  if(!staff) missing.push('staff name');
+  const err=document.getElementById('err1');
+  if(missing.length){err.style.display='';err.textContent='Please fill in: '+missing.join(', ');return;}
+  err.style.display='none';
+  header={date,invoice,supplier,staff};
+  lines=[];
+  document.getElementById('banner-text').innerHTML=
+    `<div class="row"><div class="banner-key">Date</div><div class="banner-val">${fmt(date)}</div></div>`+
+    `<div class="row"><div class="banner-key">Invoice</div><div class="banner-val">${invoice}</div></div>`+
+    `<div class="row"><div class="banner-key">Supplier</div><div class="banner-val">${supplier}</div></div>`+
+    `<div class="row"><div class="banner-key">Staff</div><div class="banner-val">${staff}</div></div>`;
+  document.getElementById('step1').style.display='none';
+  document.getElementById('step2').style.display='';
+  setStep(2);
+  renderLines();
+  document.getElementById('l-ingredient').focus();
+}
 
-  async function fetchSuppliers() {
-    try {
-      const res = await fetch(APPS_SCRIPT_URL + '?action=getSuppliers');
-      const json = await res.json();
-      if (json.suppliers && Array.isArray(json.suppliers)) {
-        json.suppliers.forEach(s => {
-          if (s && !allSuppliers.includes(s)) allSuppliers.push(s);
-        });
-        allSuppliers.sort();
-        persistSuppliers();
-      }
-    } catch(e) {}
+/* ── Autocomplete ── */
+function getMatches(q) {
+  if (!q) return [...ingredients].sort();
+  const lq = q.toLowerCase();
+  return ingredients.filter(i => i.toLowerCase().includes(lq)).sort((a,b)=>{
+    const ai=a.toLowerCase().indexOf(lq), bi=b.toLowerCase().indexOf(lq);
+    return ai-bi || a.localeCompare(b);
+  });
+}
+function highlight(str, q) {
+  if (!q) return str;
+  const idx = str.toLowerCase().indexOf(q.toLowerCase());
+  if (idx<0) return str;
+  return str.slice(0,idx)+'<mark>'+str.slice(idx,idx+q.length)+'</mark>'+str.slice(idx+q.length);
+}
+function onIngredientInput() {
+  const q = document.getElementById('l-ingredient').value.trim();
+  const matches = getMatches(q);
+  acHighlight = -1;
+  const dd = document.getElementById('ac-dropdown');
+  if (matches.length === 0) {
+    dd.innerHTML = `<div class="ac-empty">No ingredients match — add via the Ingredients tab</div>`;
+  } else {
+    dd.innerHTML = matches.map((m,i) =>
+      `<div class="ac-item" data-val="${m}" onmousedown="selectIngredient('${m.replace(/'/g,"\\'")}')"> ${highlight(m, q)}</div>`
+    ).join('');
   }
+  dd.classList.add('open');
+}
+function onIngredientKeydown(e) {
+  const dd = document.getElementById('ac-dropdown');
+  const items = dd.querySelectorAll('.ac-item');
+  if (e.key==='ArrowDown') { e.preventDefault(); acHighlight=Math.min(acHighlight+1,items.length-1); updateHighlight(items); }
+  else if (e.key==='ArrowUp') { e.preventDefault(); acHighlight=Math.max(acHighlight-1,0); updateHighlight(items); }
+  else if (e.key==='Enter') { e.preventDefault(); if(acHighlight>=0&&items[acHighlight]){selectIngredient(items[acHighlight].dataset.val);} else { closeDropdown(); document.getElementById('l-batch').focus(); } }
+  else if (e.key==='Escape') { closeDropdown(); }
+  else if (e.key==='Tab') { if(acHighlight>=0&&items[acHighlight]) selectIngredient(items[acHighlight].dataset.val); closeDropdown(); }
+}
+function updateHighlight(items) {
+  items.forEach((el,i) => el.classList.toggle('highlighted', i===acHighlight));
+  if(acHighlight>=0) items[acHighlight].scrollIntoView({block:'nearest'});
+}
+function selectIngredient(val) {
+  document.getElementById('l-ingredient').value = val;
+  closeDropdown();
+  setTimeout(()=>document.getElementById('l-batch').focus(), 50);
+}
+function closeDropdown() {
+  document.getElementById('ac-dropdown').classList.remove('open');
+  acHighlight = -1;
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrap')) closeDropdown();
+});
 
-  async function fetchIngredientPhotos() {
-    try {
-      const res = await fetch(STOCK_CHECK_URL + '?action=getIngredients');
-      const json = await res.json();
-      if (json.ingredients) {
-        ingredientPhotos = {};
-        json.ingredients.forEach(i => { if(i.photo) ingredientPhotos[i.name] = i.photo; });
-      }
-    } catch(e) {}
-  }
+/* ── Lines ── */
+function renderLines() {
+  const c=document.getElementById('lines-list');
+  c.innerHTML=lines.map((l,i)=>`
+    <div class="line-item">
+      <div class="line-n">${i+1}</div>
+      <div class="line-body">
+        <div class="line-name">${l.ingredient}</div>
+        <div class="line-meta">Batch: ${l.batch} · UBD: ${fmt(l.ubd)} · ${l.qty}</div>
+      </div>
+      ${expiryBadge(l.ubd)}
+      <button class="btn-remove" onclick="removeLine(${i})" aria-label="Remove">×</button>
+    </div>`).join('');
+  document.getElementById('save-btn').style.display=lines.length>0?'':'none';
+  document.getElementById('line-count-label').textContent=lines.length>0?`${lines.length} ingredient line${lines.length!==1?'s':''} added`:'';
+  document.getElementById('line-form-label').textContent=lines.length>0?'Add another ingredient':'Add ingredient line';
+}
+function removeLine(i){lines.splice(i,1);renderLines();}
+function addLine() {
+  const ingredient=document.getElementById('l-ingredient').value.trim();
+  const batch=document.getElementById('l-batch').value.trim();
+  const ubd=document.getElementById('l-ubd').value;
+  const qtyNum=document.getElementById('l-qty').value.trim();
+  const unit=document.getElementById('l-unit').value;
+  const missing=[];
+  if(!ingredient) missing.push('ingredient name');
+  if(!batch) missing.push('batch number');
+  if(!ubd) missing.push('use by date');
+  if(!qtyNum) missing.push('quantity');
+  const err=document.getElementById('err2');
+  if(missing.length){err.style.display='';err.textContent='Please fill in: '+missing.join(', ');return;}
+  err.style.display='none';
+  const qty=`${qtyNum} ${unit}`;
+  lines.push({ingredient,batch,ubd,qty});
+  document.getElementById('l-ingredient').value='';
+  document.getElementById('l-batch').value='';
+  document.getElementById('l-ubd').value='';
+  document.getElementById('l-qty').value='';
+  document.getElementById('l-unit').value='Cases';
+  closeDropdown();
+  document.getElementById('l-ingredient').focus();
+  renderLines();
+}
+async function syncDeliveryToSheets(delivery) {
+  const rows = delivery.lines.map(l=>({
+    date:delivery.date, invoice:delivery.invoice, supplier:delivery.supplier, staff:delivery.staff,
+    ingredient:l.ingredient, batch:l.batch, ubd:l.ubd, qty:l.qty, savedAt:delivery.savedAt
+  }));
+  const res = await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({rows}),headers:{'Content-Type':'text/plain'}});
+  const json = await res.json();
+  if(json.result !== 'success') throw new Error('Server returned non-success');
+}
 
-  // ── Tabs ──
-  function showTab(t) {
-    ['entry','records','ingredients','suppliers'].forEach(p => {
-      document.getElementById('panel-' + p).style.display = p === t ? '' : 'none';
-      document.getElementById('tab-' + p).classList.toggle('active', p === t);
-    });
-    if(t === 'records') renderRecords();
-    if(t === 'ingredients') renderIngredients();
-    if(t === 'suppliers') renderSuppliersList();
-  }
-
-  // ── Step navigation ──
-  function setStep(n) {
-    document.getElementById('sp1').className = 'step-pill' + (n === 1 ? ' active' : ' done');
-    document.getElementById('sn1').textContent = n === 1 ? '1' : '✓';
-    document.getElementById('sp2').className = 'step-pill' + (n === 2 ? ' active' : '');
-    document.getElementById('sn2').textContent = '2';
-  }
-  
-  function goStep1() {
-    document.getElementById('step1').style.display = '';
-    document.getElementById('step2').style.display = 'none';
-    setStep(1);
-  }
-  
-  function goStep2() {
-    const date = document.getElementById('h-date').value;
-    const invoice = document.getElementById('h-invoice').value.trim();
-    const supplier = document.getElementById('h-supplier').value;
-    const staff = document.getElementById('h-staff').value.trim();
-    
-    const missing = [];
-    if(!date) missing.push('delivery date');
-    if(!invoice) missing.push('invoice number');
-    if(!supplier) missing.push('supplier');
-    if(!staff) missing.push('staff name');
-    
-    const err = document.getElementById('err1');
-    if(missing.length) { err.style.display = ''; err.textContent = 'Please fill in: ' + missing.join(', '); return; }
-    err.style.display = 'none';
-    
-    header = { date, invoice, supplier, staff };
-    lines = [];
-    document.getElementById('banner-text').innerHTML =
-      `<div class="row"><div class="banner-key">Date</div><div class="banner-val">${fmt(date)}</div></div>`+
-      `<div class="row"><div class="banner-key">Invoice</div><div class="banner-val">${invoice}</div></div>`+
-      `<div class="row"><div class="banner-key">Supplier</div><div class="banner-val">${supplier}</div></div>`+
-      `<div class="row"><div class="banner-key">Staff</div><div class="banner-val">${staff}</div></div>`;
-    
-    document.getElementById('step1').style.display = 'none';
-    document.getElementById('step2').style.display = '';
-    setStep(2);
-    renderLines();
-    renderIngPicker();
-  }
-
-  // ── Ingredient picker (Step 2) ──
-  function getFilteredIngredients() {
-    const supplier = header ? header.supplier.trim().toLowerCase() : '';
-    if(!supplier) return ingredients;
-    return ingredients.filter(ing => {
-      const sup = ing.suppliers || [];
-      return sup.length === 0 || sup.some(s => s.toLowerCase() === supplier);
-    });
-  }
-  
-  function renderIngPicker() {
-    const pool = getFilteredIngredients();
-    const grid = document.getElementById('ing-picker-grid');
-    const label = document.getElementById('ing-picker-label');
-    
-    if(!pool.length) {
-      const supplier = header ? header.supplier : 'this supplier';
-      grid.innerHTML = `<div class="ing-picker-empty">No ingredients linked to <strong>${supplier}</strong> yet.<br><span style="font-size:13px;">Go to the Ingredients tab to add or link ingredients.</span></div>`;
-      if(label) label.style.display = 'none';
-      return;
-    }
-    
-    if(label) label.style.display = '';
-    const counts = {};
-    lines.forEach(l => { counts[l.ingredient] = (counts[l.ingredient]||0) + 1; });
-    
-    const groups = ['Fridge', 'Freezer', 'Ambient', 'Packaging'];
-    let html = '';
-    
-    groups.forEach(group => {
-      const items = pool.filter(ing => (ing.storageType || 'Ambient') === group);
-      if (items.length > 0) {
-        const icon = group === 'Fridge' ? '🧊' : group === 'Freezer' ? '❄️' : group === 'Packaging' ? '🛍️' : '📦';
-        html += `<div class="storage-group-label">${icon} ${group}</div>`;
-        html += items.map(ing => {
-          const count = counts[ing.name] || 0;
-          const addedClass = count > 0 ? ' added' : '';
-          const countBadge = count > 0 ? `<span class="ing-picker-count">×${count} added</span>` : '';
-          const photo = ingredientPhotos[ing.name];
-          const fallbackEmoji = ing.storageType === 'Packaging' ? '📦' : '🥫';
-          
-          let photoHtml = '';
-          if (ing.icon && ing.icon.startsWith('http')) {
-            photoHtml = `<img src="${ing.icon}" onerror="this.style.display='none'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);" />`;
-          } else if (ing.icon) {
-            photoHtml = `<div style="width:44px;height:44px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">${ing.icon}</div>`;
-          } else if (photo) {
-            photoHtml = `<img src="${photo}" onerror="this.style.display='none'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);" />`;
-          } else {
-            photoHtml = `<div style="width:44px;height:44px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${fallbackEmoji}</div>`;
-          }
-          
-          return `<div class="ing-picker-card${addedClass}" onclick="openIngDetail('${ing.name.replace(/'/g,"\\'")}')">
-            ${photoHtml}
-            <div class="ing-picker-name">${ing.name}</div>
-            ${countBadge}
-          </div>`;
-        }).join('');
-      }
-    });
-    
-    grid.innerHTML = html;
-  }
-  
-  function openIngDetail(ingName) {
-    selectedIngredient = ingName;
-    const photo = ingredientPhotos[ingName];
-    const nameEl = document.getElementById('detail-ing-name');
-    nameEl.innerHTML = (photo
-      ? `<img src="${photo}" onerror="this.style.display='none'" style="width:36px;height:36px;border-radius:6px;object-fit:cover;border:1px solid var(--border);" />`
-      : '') + `<span>${ingName}</span>`;
-      
-    const ing = ingredients.find(i => i.name === ingName);
-    const isPkg = ing && ing.storageType === 'Packaging';
-    document.getElementById('ubd-field-container').style.display = isPkg ? 'none' : 'block';
-      
-    document.getElementById('l-batch').value = '';
-    document.getElementById('l-ubd').value = '';
-    document.getElementById('l-qty').value = '';
-    document.getElementById('l-unit').value = 'Cases';
-    document.getElementById('l-condition').checked = false;
-    document.getElementById('l-storage').checked = false;
-    document.getElementById('cb-condition-wrap').classList.remove('checked');
-    document.getElementById('cb-storage-wrap').classList.remove('checked');
-    document.getElementById('check-warn').style.display = 'none';
-    document.getElementById('err2').style.display = 'none';
-    
-    document.getElementById('ing-detail-overlay').classList.add('open');
-    setTimeout(() => document.getElementById('l-batch').focus(), 100);
-  }
-  
-  function closeIngDetail() {
-    document.getElementById('ing-detail-overlay').classList.remove('open');
-    selectedIngredient = null;
-  }
-
-  // ── Lines ──
-  function toggleCheck(wrapId, cb) {
-    document.getElementById(wrapId).classList.toggle('checked', cb.checked);
-    document.getElementById('check-warn').style.display = 'none';
-  }
-  
-  function renderLines() {
-    const c = document.getElementById('lines-list');
-    c.innerHTML = lines.map((l,i) => `
-      <div class="line-item">
-        <div class="line-n">${i+1}</div>
-        <div class="line-body">
-          <div class="line-name">${l.ingredient}</div>
-          <div class="line-meta">Batch: ${l.batch}${l.isPackaging ? '' : ' · UBD: ' + fmt(l.ubd)} · ${l.qty} ${l.unit}</div>
-          <div style="display:flex;gap:5px;margin-top:4px;">
-            <span class="check-tag ${l.condition ? 'check-tag-ok' : 'check-tag-fail'}">${l.condition ? '✓ Good condition' : '✗ Condition'}</span>
-            <span class="check-tag ${l.storage ? 'check-tag-ok' : 'check-tag-fail'}">${l.storage ? '✓ Correct storage' : '✗ Storage'}</span>
-          </div>
-        </div>
-        ${l.isPackaging ? '' : expiryBadge(l.ubd)}
-        <button class="btn-remove" onclick="removeLine(${i})">×</button>
-      </div>`).join('');
-      
-    document.getElementById('save-btn').style.display = lines.length > 0 ? '' : 'none';
-    document.getElementById('line-count-label').textContent = lines.length > 0 ? `${lines.length} ingredient line${lines.length !== 1 ? 's' : ''} added` : '';
-  }
-  
-  function removeLine(i) {
-    lines.splice(i, 1); 
-    renderLines(); 
-    renderIngPicker();
-  }
-  
-  function addLine() {
-    const ingredient = selectedIngredient || '';
-    const batch = document.getElementById('l-batch').value.trim();
-    const ubd = document.getElementById('l-ubd').value;
-    const qty = document.getElementById('l-qty').value.trim();
-    const unit = document.getElementById('l-unit').value;
-    const condition = document.getElementById('l-condition').checked;
-    const storage = document.getElementById('l-storage').checked;
-    
-    const ing = ingredients.find(i => i.name === ingredient);
-    const isPkg = ing && ing.storageType === 'Packaging';
-    
-    const missing = [];
-    if(!ingredient) missing.push('ingredient');
-    if(!batch) missing.push('batch number');
-    if(!isPkg && !ubd) missing.push('use by date');
-    if(!qty) missing.push('quantity');
-    
-    const err = document.getElementById('err2');
-    if(missing.length) { err.style.display = ''; err.textContent = 'Please fill in: ' + missing.join(', '); return; }
-    err.style.display = 'none';
-    
-    if(!condition || !storage) { document.getElementById('check-warn').style.display = ''; return; }
-    document.getElementById('check-warn').style.display = 'none';
-    
-    lines.push({ ingredient, batch, ubd: isPkg ? '' : ubd, qty, unit, condition, storage, isPackaging: isPkg });
-    closeIngDetail();
-    renderLines();
-    renderIngPicker();
-  }
-  
-  async function saveDelivery() {
-    if(!lines.length) return;
-    
-    const delivery = { 
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2,5), 
-      ...header, 
-      lines: [...lines], 
-      savedAt: new Date().toISOString() 
-    };
-    
-    deliveries.unshift(delivery);
-    persist(); 
-    updateCount();
-    
-    lines = []; 
-    header = null;
-    ['h-invoice','h-staff'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('h-date').valueAsDate = new Date();
-    document.getElementById('h-supplier').value = '';
-    
-    goStep1(); 
-    showTab('records');
+async function saveDelivery() {
+  if(!lines.length) return;
+  const delivery={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), ...header, lines:[...lines], savedAt:new Date().toISOString(), synced:false};
+  deliveries.unshift(delivery);
+  persist();
+  updateCount();
+  lines=[];header=null;
+  ['h-date','h-invoice','h-supplier','h-staff'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('h-date').valueAsDate=new Date();
+  goStep1();
+  showTab('records');
+  if(APPS_SCRIPT_URL) {
     updateSyncStatus('syncing');
-    
     try {
-      const rows = delivery.lines.map(l => ({
-        date: delivery.date, 
-        invoice: delivery.invoice, 
-        supplier: delivery.supplier, 
-        staff: delivery.staff, 
-        ingredient: l.ingredient, 
-        batch: l.batch, 
-        ubd: l.ubd, 
-        qty: l.qty, 
-        unit: l.unit, 
-        condition: l.condition ? 'Yes' : 'No', 
-        storage: l.storage ? 'Yes' : 'No', 
-        isPackaging: !!l.isPackaging,
-        savedAt: delivery.savedAt
-      }));
-      
-      const res = await fetch(APPS_SCRIPT_URL, { 
-        method: 'POST', 
-        body: JSON.stringify({ rows }), 
-        headers: { 'Content-Type': 'text/plain' } 
-      });
-      const json = await res.json();
-      updateSyncStatus(json.result === 'success' ? 'synced' : 'error');
-      setTimeout(() => updateSyncStatus('sheets'), 4000);
+      await syncDeliveryToSheets(delivery);
+      const idx = deliveries.findIndex(d=>d.id===delivery.id);
+      if(idx>=0){ deliveries[idx].synced=true; persist(); }
+      updateSyncStatus('synced');
+      setTimeout(()=>updateSyncStatus('sheets'),4000);
+      renderRecords();
     } catch(e) {
       updateSyncStatus('error');
-      setTimeout(() => updateSyncStatus('sheets'), 4000);
+      setTimeout(()=>updateSyncStatus('sheets'),4000);
     }
   }
+}
 
-  // ── Records ──
-  function renderRecords() {
-    const q = (document.getElementById('search-q').value || '').toLowerCase();
-    const c = document.getElementById('records-container');
-    const filtered = deliveries.map(d => ({
-      ...d, 
-      lines: d.lines.filter(l => !q || [l.ingredient, l.batch, d.invoice, d.supplier, d.staff].some(v => v && v.toLowerCase().includes(q)))
-    })).filter(d => d.lines.length > 0);
-    
-    if(!filtered.length) {
-      c.innerHTML = `<div class="empty"><div class="icon">📋</div>${deliveries.length ? 'No results match' : 'No deliveries yet'}</div>`; 
-      return;
-    }
-    
-    c.innerHTML = filtered.map(d => `
-      <div class="delivery-group">
-        <div class="group-header">
-          <div class="group-meta"><strong>${fmt(d.date)}</strong><div class="inv">${d.invoice} · ${d.supplier} · ${d.staff}</div></div>
-          <div class="group-count">${d.lines.length} line${d.lines.length !== 1 ? 's' : ''}</div>
+/* ── Records ── */
+function renderRecords() {
+  const q=(document.getElementById('search-q').value||'').toLowerCase();
+  const c=document.getElementById('records-container');
+
+  // Sync-all bar
+  const unsyncedAll = deliveries.filter(d=>!d.synced);
+  const syncBar = document.getElementById('sync-all-bar');
+  if(unsyncedAll.length > 1) {
+    syncBar.style.display='flex';
+    document.getElementById('sync-all-count').textContent=`${unsyncedAll.length} deliveries not yet synced to Sheets`;
+  } else {
+    syncBar.style.display='none';
+  }
+
+  const filtered=deliveries.map(d=>({...d,lines:d.lines.filter(l=>!q||[l.ingredient,l.batch,d.invoice,d.supplier,d.staff].some(v=>v&&v.toLowerCase().includes(q)))})).filter(d=>d.lines.length>0);
+  if(!filtered.length){
+    c.innerHTML=`<div class="empty"><div class="icon">📋</div>${deliveries.length?'No results match your search':'No deliveries recorded yet'}</div>`;
+    return;
+  }
+  c.innerHTML=filtered.map(d=>`
+    <div class="delivery-group">
+      <div class="group-header">
+        <div class="group-meta">
+          <strong>${fmt(d.date)}</strong>
+          <div class="inv">${d.invoice} · ${d.supplier} · ${d.staff}</div>
         </div>
-        ${d.lines.map(l => `
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <div class="group-count">${d.lines.length} line${d.lines.length!==1?'s':''}</div>
+          ${!d.synced ? `<button class="btn-sync-delivery" id="syncbtn-${d.id}" onclick="syncOne('${d.id}')">↑ Sync</button>` : ''}
+        </div>
+      </div>
+      ${d.lines.map((l)=>`
         <div class="line-record">
-          <div class="lr-top"><div class="lr-name">${l.ingredient}</div>${l.isPackaging ? '' : expiryBadge(l.ubd)}</div>
-          <div class="lr-meta"><span>Batch: ${l.batch}</span>${l.isPackaging ? '' : '<span>UBD: ' + fmt(l.ubd) + '</span>'}<span>Qty: ${l.qty} ${l.unit||''}</span></div>
-          <div class="lr-checks">
-            <span class="check-tag ${l.condition ? 'check-tag-ok' : 'check-tag-fail'}">${l.condition ? '✓ Good condition' : '✗ Condition issue'}</span>
-            <span class="check-tag ${l.storage ? 'check-tag-ok' : 'check-tag-fail'}">${l.storage ? '✓ Correct storage' : '✗ Storage issue'}</span>
-          </div>
+          <div class="lr-top"><div class="lr-name">${l.ingredient}</div>${expiryBadge(l.ubd)}</div>
+          <div class="lr-meta"><span>Batch: ${l.batch}</span><span>UBD: ${fmt(l.ubd)}</span><span>Qty: ${l.qty}</span></div>
         </div>`).join('')}
-      </div>`).join('<hr style="border:none;border-top:1px solid var(--border);margin:0 0 20px;">');
-  }
+    </div>`).join('<hr style="border:none;border-top:1px solid var(--border);margin:0 0 20px;">');
+}
 
-  // ── Ingredients tab ──
-  function renderIngredients() {
-    const list = document.getElementById('ing-list');
-    const count = document.getElementById('ing-count');
-    
-    count.textContent = ingredients.length ? `${ingredients.length} ingredient${ingredients.length !== 1 ? 's' : ''} in list` : '';
-    if(!ingredients.length) {
-      list.innerHTML = '<div class="ing-empty">No ingredients yet. Click "+ Add New" above.</div>'; 
-      return;
-    }
-    
-    const groups = ['Fridge', 'Freezer', 'Ambient', 'Packaging'];
-    let html = '';
-    
-    groups.forEach(group => {
-      const items = ingredients.filter(ing => (ing.storageType || 'Ambient') === group);
-      if (items.length > 0) {
-        const icon = group === 'Fridge' ? '🧊' : group === 'Freezer' ? '❄️' : group === 'Packaging' ? '🛍️' : '📦';
-        html += `<div class="storage-group-label" style="margin-top: ${html === '' ? '0' : '16px'};">${icon} ${group}</div>`;
-        html += items.map(ing => {
-          const sups = ing.suppliers || [];
-          const supHtml = sups.length
-            ? sups.map(s => `<span class="supplier-tag linked">${s}</span>`).join('')
-            : '<span class="supplier-tag">No suppliers linked</span>';
-          
-          const photo = ingredientPhotos[ing.name];
-          const fallbackEmoji = ing.storageType === 'Packaging' ? '📦' : '🥫';
-          
-          let photoHtml = '';
-          if (ing.icon && ing.icon.startsWith('http')) {
-            photoHtml = `<div class="ing-item-photo"><img src="${ing.icon}" onerror="this.style.display='none'" /></div>`;
-          } else if (ing.icon) {
-            photoHtml = `<div class="ing-item-photo" style="font-size:24px;">${ing.icon}</div>`;
-          } else if (photo) {
-            photoHtml = `<div class="ing-item-photo"><img src="${photo}" onerror="this.style.display='none'" /></div>`;
-          } else {
-            photoHtml = `<div class="ing-item-photo">${fallbackEmoji}</div>`;
-          }
-            
-          const safe = ing.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-          return `<div class="ing-item">
-            ${photoHtml}
-            <div class="ing-item-body">
-              <div class="ing-item-name">${ing.name}</div>
-              <div class="ing-item-suppliers">${supHtml}</div>
-            </div>
-            <div class="ing-item-actions">
-              <button class="btn-sm" onclick="openIngModal('${safe}')">Edit</button>
-              <button class="btn-sm btn-danger-sm" onclick="deleteIngredient('${safe}')">✕</button>
-            </div>
-          </div>`;
-        }).join('');
-      }
-    });
-    
-    list.innerHTML = html;
+async function syncOne(id) {
+  if(!APPS_SCRIPT_URL) return;
+  const delivery = deliveries.find(d=>d.id===id);
+  if(!delivery) return;
+  const btn = document.getElementById('syncbtn-'+id);
+  if(btn){ btn.disabled=true; btn.textContent='Syncing…'; }
+  try {
+    await syncDeliveryToSheets(delivery);
+    const idx = deliveries.findIndex(d=>d.id===id);
+    if(idx>=0){ deliveries[idx].synced=true; persist(); }
+    showToast('Delivery synced ✓');
+    renderRecords();
+  } catch(e) {
+    if(btn){ btn.disabled=false; btn.textContent='↑ Retry'; }
+    showToast('Sync failed — check connection');
   }
-  
-  // ── Ingredient ADD/EDIT Modal ──
-  function openIngModal(ingName = null) {
-    editingIngredient = ingName; // Also serves as oldName if editing
-    const ing = ingName ? ingredients.find(i => i.name === ingName) : null;
-    
-    document.getElementById('ing-modal-title').textContent = ingName ? 'Edit Ingredient' : 'Add Ingredient';
-    document.getElementById('modal-ing-name').value = ing ? ing.name : '';
-    document.getElementById('modal-ing-storage').value = ing ? (ing.storageType || 'Ambient') : 'Ambient';
-    document.getElementById('modal-ing-icon').value = ing ? (ing.icon || '') : '';
-    document.getElementById('modal-err-ing').style.display = 'none';
-    
-    renderModalSupplierList(ing ? (ing.suppliers || []) : []);
-    
-    document.getElementById('ing-modal-overlay').classList.add('open');
-    setTimeout(() => document.getElementById('modal-ing-name').focus(), 100);
-  }
-  
-  function closeIngModal() {
-    document.getElementById('ing-modal-overlay').classList.remove('open');
-    editingIngredient = null;
-  }
-  
-  function renderModalSupplierList(selected) {
-    const list = document.getElementById('modal-supplier-list');
-    const combined = [...new Set([...allSuppliers, ...selected])].sort();
-    
-    if(!combined.length) {
-      list.innerHTML = '<div style="font-size:13px;color:var(--text-muted);padding:8px;text-align:center;">No suppliers yet. Add them in the Suppliers tab first.</div>'; 
-      return;
-    }
-    
-    list.innerHTML = combined.map(s => `
-      <label class="supplier-check-row">
-        <input type="checkbox" value="${s.replace(/"/g, '&quot;')}" ${selected.includes(s) ? 'checked' : ''} />
-        <span>${s}</span>
-      </label>`).join('');
-  }
-  
-  async function saveModalIngredient() {
-    const nameInput = document.getElementById('modal-ing-name');
-    const name = nameInput.value.trim();
-    const storage = document.getElementById('modal-ing-storage').value;
-    const icon = document.getElementById('modal-ing-icon').value.trim();
-    const checks = [...document.querySelectorAll('#modal-supplier-list input[type=checkbox]')];
-    const selectedSups = checks.filter(c => c.checked).map(c => c.value);
-    
-    const err = document.getElementById('modal-err-ing');
-    
-    if(!name) { err.style.display = ''; err.textContent = 'Please enter a name.'; return; }
-    
-    // Check if new name already exists elsewhere
-    if(ingredients.some(i => i.name.toLowerCase() === name.toLowerCase() && i.name !== editingIngredient)) { 
-      err.style.display = ''; err.textContent = `"${name}" already exists.`; return; 
-    }
-    
-    err.style.display = 'none';
-    const btn = document.getElementById('btn-save-ing');
-    btn.textContent = 'Saving…'; 
-    btn.disabled = true;
-    
-    const payload = { 
-      name: name, 
-      oldName: editingIngredient,
-      suppliers: selectedSups.join(', '), 
-      storageType: storage,
-      icon: icon
-    }; 
-    
-    try {
-      const res = await fetch(APPS_SCRIPT_URL, { 
-        method: 'POST', 
-        body: JSON.stringify({ action: 'saveIngredientObj', ingredient: payload }), 
-        headers: { 'Content-Type': 'text/plain' } 
-      });
-      const json = await res.json();
-      
-      if(json.result === 'success') {
-        if (editingIngredient) {
-          // Update existing item
-          const idx = ingredients.findIndex(i => i.name === editingIngredient);
-          if (idx >= 0) {
-            ingredients[idx] = { name, suppliers: selectedSups, storageType: storage, icon: icon };
-          }
-          // Port image over if name changed
-          if (name !== editingIngredient && ingredientPhotos[editingIngredient]) {
-            ingredientPhotos[name] = ingredientPhotos[editingIngredient];
-            delete ingredientPhotos[editingIngredient];
-          }
-          // Update lines actively being drafted
-          lines.forEach(l => { if(l.ingredient === editingIngredient) l.ingredient = name; });
-          showToast('Ingredient updated ✓');
-        } else {
-          // Add new item
-          ingredients.push({ name, suppliers: selectedSups, storageType: storage, icon: icon });
-          showToast(name + ' added ✓');
-        }
-        
-        ingredients.sort((a,b) => a.name.localeCompare(b.name));
-        renderIngredients(); 
-        renderIngPicker();
-        renderLines();
-        closeIngModal();
-      } else {
-        err.style.display = ''; 
-        err.textContent = 'Failed to save — try again.';
-      }
-    } catch(e) {
-      err.style.display = ''; 
-      err.textContent = 'No connection.';
-    }
-    
-    btn.textContent = 'Save Ingredient'; 
-    btn.disabled = false;
-  }
-  
-  async function deleteIngredient(name) {
-    if(!confirm(`Delete "${name}"?`)) return;
-    try {
-      await fetch(APPS_SCRIPT_URL, { 
-        method: 'POST', 
-        body: JSON.stringify({ action: 'deleteIngredient', ingredient: name }), 
-        headers: { 'Content-Type': 'text/plain' } 
-      });
-    } catch(e){}
-    ingredients = ingredients.filter(i => i.name !== name);
-    renderIngredients(); 
-    showToast('Deleted');
-  }
+}
 
-  // ── Suppliers tab ──
-  function populateSupplierDropdown() {
-    const sel = document.getElementById('h-supplier');
-    const cur = sel.value;
-    
-    sel.innerHTML = '<option value="">Select supplier…</option>';
-    allSuppliers.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s;
-      opt.textContent = s;
-      sel.appendChild(opt);
-    });
-    
-    if(cur) sel.value = cur;
-  }
-  
-  function renderSuppliersList() {
-    const list = document.getElementById('supplier-list');
-    const count = document.getElementById('sup-count');
-    if(!list) return;
-    
-    count.textContent = allSuppliers.length ? `${allSuppliers.length} supplier${allSuppliers.length !== 1 ? 's' : ''}` : '';
-    if(!allSuppliers.length) {
-      list.innerHTML = '<div class="ing-empty">No suppliers yet — add one above.</div>'; 
-      return;
-    }
-    
-    list.innerHTML = allSuppliers.map((s,i) => `
-      <div class="supplier-item">
-        <div class="supplier-item-name">${s}</div>
-        <button class="btn-sm btn-danger-sm" onclick="deleteSupplier(${i})">✕</button>
-      </div>`).join('');
-  }
-  
-  async function addSupplier() {
-    const input = document.getElementById('new-supplier');
-    const val = input.value.trim();
-    const err = document.getElementById('err-sup');
-    
-    if(!val) { err.style.display = ''; err.textContent = 'Please enter a supplier name.'; return; }
-    if(allSuppliers.includes(val)) { err.style.display = ''; err.textContent = `"${val}" already exists.`; return; }
-    
-    err.style.display = 'none';
-    allSuppliers.push(val); 
-    allSuppliers.sort();
-    
-    persistSuppliers(); 
-    input.value = '';
-    populateSupplierDropdown(); 
-    renderSuppliersList(); 
-    showToast(val + ' added ✓');
-    
-    // Sync the master supplier list to Google Sheets
+async function syncAll() {
+  if(!APPS_SCRIPT_URL) return;
+  const btn = document.getElementById('btn-sync-all');
+  if(btn){ btn.disabled=true; btn.textContent='Syncing…'; }
+  const unsynced = deliveries.filter(d=>!d.synced);
+  let ok=0, fail=0;
+  for(const delivery of unsynced) {
     try {
-      await fetch(APPS_SCRIPT_URL, { 
-        method: 'POST', 
-        body: JSON.stringify({ action: 'saveSupplier', supplier: val }), 
-        headers: { 'Content-Type': 'text/plain' } 
-      });
-    } catch(e) {}
+      await syncDeliveryToSheets(delivery);
+      const idx = deliveries.findIndex(d=>d.id===delivery.id);
+      if(idx>=0) deliveries[idx].synced=true;
+      ok++;
+    } catch(e) { fail++; }
   }
-  
-  async function deleteSupplier(i) {
-    const sup = allSuppliers[i];
-    if(!confirm(`Remove "${sup}"?`)) return;
-    allSuppliers.splice(i, 1);
-    persistSuppliers();
-    populateSupplierDropdown(); 
-    renderSuppliersList(); 
-    showToast('Removed');
-    
-    // Remove from Google Sheets
-    try {
-      await fetch(APPS_SCRIPT_URL, { 
-        method: 'POST', 
-        body: JSON.stringify({ action: 'deleteSupplier', supplier: sup }), 
-        headers: { 'Content-Type': 'text/plain' } 
-      });
-    } catch(e) {}
+  persist();
+  renderRecords();
+  if(btn){ btn.disabled=false; btn.textContent='Sync all'; }
+  showToast(fail===0 ? `All ${ok} deliveries synced ✓` : `${ok} synced, ${fail} failed`);
+}
+
+/* ── Ingredients manager ── */
+function renderIngredients() {
+  const list = document.getElementById('ing-list');
+  const count = document.getElementById('ing-count');
+  const sorted = [...ingredients].sort();
+  count.textContent = sorted.length ? `${sorted.length} ingredient${sorted.length!==1?'s':''} in list` : '';
+  if (!sorted.length) {
+    list.innerHTML = '<div class="ing-empty">No ingredients yet — add some above</div>';
+    return;
   }
+  list.innerHTML = sorted.map(ing => `
+    <div class="ing-item">
+      <span>${ing}</span>
+      <button class="btn-del-ing" onclick="deleteIngredient('${ing.replace(/'/g,"\\'")}')">×</button>
+    </div>`).join('');
+}
+function addIngredient() {
+  const input = document.getElementById('new-ingredient');
+  const val = input.value.trim();
+  const err = document.getElementById('err-ing');
+  if (!val) { err.style.display=''; err.textContent='Please enter an ingredient name.'; return; }
+  if (ingredients.some(i => i.toLowerCase()===val.toLowerCase())) { err.style.display=''; err.textContent=`"${val}" is already in the list.`; return; }
+  err.style.display='none';
+  ingredients.push(val);
+  persistIngredients();
+  input.value='';
+  renderIngredients();
+  input.focus();
+}
+function deleteIngredient(ing) {
+  ingredients = ingredients.filter(i => i !== ing);
+  persistIngredients();
+  renderIngredients();
+}
 
-  // Initialize Date and Load application
-  document.getElementById('h-date').valueAsDate = new Date();
-  load();
-
+document.getElementById('h-date').valueAsDate = new Date();
+load();
 </script>
 </body>
 </html>
-
-
-
-
-
