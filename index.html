@@ -432,7 +432,7 @@
     setTimeout(() => t.classList.remove('show'), 2500);
   }
   function updateCount() { document.getElementById('rec-count').textContent = deliveries.reduce((s,d) => s + d.lines.length, 0); }
-  function fmt(d) { if(!d) return '—'; const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; }
+  function fmt(d) { if(!d) return '—'; const s = String(d).slice(0,10); const [y,m,day] = s.split('-'); return (day && m && y) ? `${day}/${m}/${y}` : s; }
 
   function expiryStatus(ubd) {
     if(!ubd) return 'ok';
@@ -950,7 +950,7 @@
                 <span class="delivery-date">${fmt(d.date)}</span>
                 ${isUnsynced ? '<span class="badge badge-unsynced">Unsynced</span>' : ''}
               </div>
-              <div class="delivery-meta">${d.invoice} · ${d.supplier} · ${d.staff}</div>
+              <div class="delivery-meta">${d.invoice||'—'} · ${d.supplier||'—'} · ${d.staff||'—'}</div>
             </div>
             <div class="delivery-header-right">
               <span class="line-pill">${d.lines.length} line${d.lines.length !== 1 ? 's' : ''}</span>
