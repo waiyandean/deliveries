@@ -881,6 +881,10 @@
     renderRecords();
   }
 
+  function byDateDesc(a, b) {
+    return new Date(b.date) - new Date(a.date);
+  }
+
   function buildCombinedList() {
     // If we have Sheets data, use it as the base; append local-only unsynced deliveries
     if(sheetsFetched) {
@@ -889,10 +893,12 @@
       return [
         ...sheetsDeliveries.map(d => ({ ...d, syncStatus: 'synced' })),
         ...localOnly.map(d => ({ ...d, syncStatus: 'unsynced' }))
-      ].sort((a,b) => b.date.localeCompare(a.date) || (b.savedAt||'').localeCompare(a.savedAt||''));
+      ].sort(byDateDesc);
     }
     // No Sheets data yet — show local records with their cached synced flag
-    return deliveries.map(d => ({ ...d, syncStatus: d.synced ? 'synced' : 'unsynced' }));
+    return deliveries
+      .map(d => ({ ...d, syncStatus: d.synced ? 'synced' : 'unsynced' }))
+      .sort(byDateDesc);
   }
 
   function renderRecords() {
