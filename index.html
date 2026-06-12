@@ -432,7 +432,12 @@
     setTimeout(() => t.classList.remove('show'), 2500);
   }
   function updateCount() { document.getElementById('rec-count').textContent = deliveries.reduce((s,d) => s + d.lines.length, 0); }
-  function fmt(d) { if(!d) return '—'; const s = String(d).slice(0,10); const [y,m,day] = s.split('-'); return (day && m && y) ? `${day}/${m}/${y}` : s; }
+  function fmt(d) {
+    if (!d) return '—';
+    const s = String(d).slice(0, 10); // take only yyyy-mm-dd, drop any trailing time
+    const p = s.split('-');
+    return p.length === 3 && p[0].length === 4 ? p[2] + '/' + p[1] + '/' + p[0] : s;
+  }
 
   function expiryStatus(ubd) {
     if(!ubd) return 'ok';
