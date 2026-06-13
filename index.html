@@ -1076,6 +1076,7 @@
 
           const safe = ing.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
           return `<div class="ing-item">
+            <button class="btn-sm btn-danger-sm" onclick="deleteIngredient('${safe}')">✕</button>
             ${photoHtml}
             <div class="ing-item-body">
               <div class="ing-item-name">${ing.name}</div>
@@ -1083,7 +1084,6 @@
             </div>
             <div class="ing-item-actions">
               <button class="btn-sm" onclick="openIngModal('${safe}')">Edit</button>
-              <button class="btn-sm btn-danger-sm" onclick="deleteIngredient('${safe}')">✕</button>
             </div>
           </div>`;
         }).join('');
