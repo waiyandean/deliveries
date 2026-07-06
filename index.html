@@ -412,7 +412,11 @@
 
 <script>
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzu3MokzEDHnYyO0I8FqIVi0UkI5DkJOwNNW-YmdIchDkw75aoksUvHFLRJmi3tm9aD/exec';
-  const STOCK_CHECK_URL = 'https://script.google.com/macros/s/AKfycbx8donnPrSqM5aI5d8dMSMIBdOWuITzljNxTRj46div5S_VfuvODutQhQGUcHHXN5bJ_A/exec';
+  // Catalog reads (getIngredients photos) now via the batching-api Worker (/catalog),
+  // KV-cached (~0.2s vs ~2.4s Apps Script). deliveries' own APPS_SCRIPT_URL (its separate
+  // getIngredients/getSuppliers/getDeliveries + writes) is deliberately UNCHANGED.
+  // ROLLBACK: restore https://script.google.com/macros/s/AKfycbx8donnPrSqM5aI5d8dMSMIBdOWuITzljNxTRj46div5S_VfuvODutQhQGUcHHXN5bJ_A/exec
+  const STOCK_CHECK_URL = 'https://batching-api.waiyandean.workers.dev/catalog';
   const SK_DELIVERIES = 'delivery_records_v3';
   const SK_SUPPLIERS  = 'delivery_suppliers_v1';
 
